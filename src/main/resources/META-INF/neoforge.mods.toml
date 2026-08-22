@@ -1,0 +1,35 @@
+modLoader = "javafml"
+loaderVersion = "[4,)"
+license = "GPL-3.0"
+issueTrackerURL = "https://github.com/TimmyChips/Modefite-Item-Defintion-Backport/issues"
+
+[[mods]]
+modId = "${mod_id}"
+version = "${version}"
+displayName = "Modefite - Item Definition Backport"
+authors = "TimmyChips"
+credits = "Original mod and the official NeoForge build by TimmyChips. This is a modified fork - see PORTING-NOTES.md for the list of changes."
+description = '''
+Backports the item model definition system added in 1.21.4.
+
+Modified fork built from the Fabric sources. Relative to the official NeoForge
+build it restores the armor texture redirect and the shader reload fallback,
+and reworks the per-frame resolver hot path.
+'''
+
+[[dependencies.${mod_id}]]
+modId = "neoforge"
+type = "required"
+versionRange = "[21.1,)"
+ordering = "NONE"
+side = "CLIENT"
+
+[[dependencies.${mod_id}]]
+modId = "minecraft"
+type = "required"
+versionRange = "[1.21.1,1.22)"
+ordering = "NONE"
+side = "CLIENT"
+
+[[mixins]]
+config = "modefite.client.mixins.json"

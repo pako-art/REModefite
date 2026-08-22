@@ -2,6 +2,7 @@
   "required": true,
   "package": "timmychips.modefiteitemdefinitions.mixin.client",
   "compatibilityLevel": "JAVA_21",
+  "minVersion": "0.8",
   "client": [
     "ArmorTextureRedirectMixin",
     "GameRendererShaderResilienceMixin",
@@ -11,9 +12,9 @@
     "KeyBindingAccessor",
     "UnlockedModelRotationDeserializerMixin"
   ],
+  "mixins": [
+  ],
   "injectors": {
     "defaultRequire": 1
-  },
-  "mixins": [
-  ]
+  }
 }
