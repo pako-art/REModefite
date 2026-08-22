@@ -25,21 +25,21 @@ public class SubmergedBool implements ConditionPropertyHandler {
 
     private static boolean submergedInFluidCheck(LivingEntity livingEntity, ItemStack stack, ResourceLocation fluidIdToMatch) {
 
-        Entity holder = livingEntity == null ? stack.getHolder() : livingEntity; // Get the stack holding entity (ItemEntity) if livingEntity is null
+        Entity holder = livingEntity == null ? stack.getEntityRepresentation() : livingEntity; // Get the stack holding entity (ItemEntity) if livingEntity is null
 
         if (holder != null) {
             Vec3 eyePos;
             if (holder instanceof LivingEntity) eyePos = holder.getEyePosition();
-            else eyePos = holder.getPos();
+            else eyePos = holder.position();
 
             BlockPos fluidBlock = BlockPos.containing(eyePos);
             FluidState fluidState = holder.level().getFluidState(fluidBlock); // Get fluidState entity is submerged in
 
             if (!fluidState.isEmpty()) {
-                Fluid fluid = fluidState.getFluid();
+                Fluid fluid = fluidState.getType();
                 Fluid targetToMatch = BuiltInRegistries.FLUID.get(fluidIdToMatch); // Get identifier to match as Fluid object
 
-                return fluid.is(targetToMatch); // Matches specified fluid from json file
+                return fluid.isSame(targetToMatch); // Matches specified fluid from json file
             }
         }
         return false;

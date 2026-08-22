@@ -17,7 +17,7 @@ public class MouseHelper {
         int guiLeft = ((HandleSlotAccessor) screen).getX(); // Get screen coordinates from Mixin accessor
         int guiTop = ((HandleSlotAccessor) screen).getY();
 
-        for (Slot slot : screen.containerMenu.slots) {
+        for (Slot slot : screen.getMenu().slots) {
             int slotX = guiLeft + slot.x;
             int slotY = guiTop + slot.y;
 

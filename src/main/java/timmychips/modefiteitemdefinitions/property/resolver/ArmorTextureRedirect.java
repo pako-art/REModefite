@@ -37,7 +37,7 @@ public class ArmorTextureRedirect {
         String folder = matcher.group(2).equals("2") ? "humanoid_leggings" : "humanoid";
         boolean overlay = matcher.group(3) != null;
 
-        ResourceLocation candidate = ResourceLocation.parse(legacy.getNamespace(),
+        ResourceLocation candidate = ResourceLocation.fromNamespaceAndPath(legacy.getNamespace(),
                 "textures/entity/equipment/" + folder + "/" + assetName + (overlay ? "_overlay" : "") + ".png");
 
         ResourceManager manager = Minecraft.getInstance().getResourceManager();

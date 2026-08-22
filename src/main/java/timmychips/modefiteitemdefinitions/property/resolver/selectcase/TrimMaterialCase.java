@@ -16,6 +16,6 @@ public class TrimMaterialCase implements SelectPropertyHandler {
     public String getValue(ItemStack stack, LivingEntity entity, ItemDisplayContext mode, SelectDefinition.Definition definition) {
         ArmorTrim armorTrim = stack.get(DataComponents.TRIM);
         if (armorTrim == null) return null;
-        return armorTrim.getMaterial().getIdAsString();
+        return armorTrim.material().unwrapKey().map(k -> k.location().toString()).orElse(null);
     }
 }

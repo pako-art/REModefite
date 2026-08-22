@@ -35,7 +35,7 @@ public record ConditionDefinition(
         KEYBIND_CODEC = Codec.STRING.comapFlatMap((id) -> {                      // Keybind string
             KeyMapping keyBinding = KeyBindingAccessor.getKeyIds().get(id);
             return keyBinding != null ? DataResult.success(keyBinding) : DataResult.error(() -> "Invalid keybind: " + id);
-        }, KeyMapping::getTranslationKey);
+        }, KeyMapping::getName);
     }
 
     public static MapCodec<ConditionDefinition> codec(Codec<ItemModelDefinition> selfCodec) {

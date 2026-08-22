@@ -13,7 +13,7 @@ import java.util.UUID;
 import static timmychips.modefiteitemdefinitions.ServerInitializer.MOD_ID;
 
 public record UseKeyC2SPayload(UUID playerUuid, ItemStack itemStack, boolean isUsing) implements CustomPacketPayload {
-    public static final ResourceLocation ID = ResourceLocation.parse(MOD_ID, "use_key");
+    public static final ResourceLocation ID = ResourceLocation.fromNamespaceAndPath(MOD_ID, "use_key");
     public static final CustomPacketPayload.Id<UseKeyC2SPayload> PACKET_ID = new CustomPacketPayload.Id<>(ID);
 
     public static final StreamCodec<RegistryFriendlyByteBuf, UseKeyC2SPayload> CODEC = StreamCodec.tuple(

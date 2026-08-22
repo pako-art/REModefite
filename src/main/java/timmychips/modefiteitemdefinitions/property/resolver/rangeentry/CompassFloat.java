@@ -37,7 +37,7 @@ public class CompassFloat implements RangePropertyHandler {
         }
 
         @Override
-        public String asString() {
+        public String getSerializedName() {
             return name;
         }
 
@@ -108,11 +108,11 @@ public class CompassFloat implements RangePropertyHandler {
 
     private float getAngleTo(LivingEntity entity, BlockPos pos) {
         Vec3 target = Vec3.atCenterOf(pos);
-        return (float) (Math.atan2(target.getZ() - entity.getZ(), target.getX() - entity.getX()) / (2 * Math.PI));
+        return (float) (Math.atan2(target.z() - entity.getZ(), target.x() - entity.getX()) / (2 * Math.PI));
     }
 
     private boolean canPointTo(Entity entity, @Nullable GlobalPos pos) {
-        return pos != null && pos.dimension() == entity.level().dimension() && !(pos.pos().getSquaredDistance(entity.getPos()) < 9.999999747378752E-6);
+        return pos != null && pos.dimension() == entity.level().dimension() && !(pos.pos().distToCenterSqr(entity.position()) < 9.999999747378752E-6);
     }
 
     private float getBodyYaw(LivingEntity entity) {

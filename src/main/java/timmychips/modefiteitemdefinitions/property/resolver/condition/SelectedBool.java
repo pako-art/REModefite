@@ -13,7 +13,7 @@ public class SelectedBool implements ConditionPropertyHandler {
     public boolean getValue(ItemStack stack, LivingEntity entity, ConditionDefinition definition) {
         if (entity instanceof Player player) {
             InteractionHand hand = player.getUsedItemHand();
-            return hand != null && player.getStackInHand(hand) == stack;
+            return hand != null && player.getItemInHand(hand) == stack;
         }
         return false;
     }

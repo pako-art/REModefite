@@ -32,8 +32,8 @@ public class ConditionPropertyRegistry {
         register(ResourceLocation.parse("minecraft:view_entity"), new ViewEntityBool());
 
         // Custom, modded Properties
-        register(ResourceLocation.parse(MOD_ID,"hovered_item"), new HoveredItemBool());
-        register(ResourceLocation.parse(MOD_ID,"submerged"), new SubmergedBool());
+        register(ResourceLocation.fromNamespaceAndPath(MOD_ID, "hovered_item"), new HoveredItemBool());
+        register(ResourceLocation.fromNamespaceAndPath(MOD_ID, "submerged"), new SubmergedBool());
     }
 
     private static void register(ResourceLocation id, ConditionPropertyHandler handler) {

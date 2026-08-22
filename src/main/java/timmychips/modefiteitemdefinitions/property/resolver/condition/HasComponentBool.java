@@ -43,7 +43,7 @@ public class HasComponentBool implements ConditionPropertyHandler {
             return false;
         }
 
-        if (stack.contains(componentType)) { // stack has component
+        if (stack.has(componentType)) { // stack has component
 
             if (!ignore_default) return true;               // if ignore_default is false
             else return hasChanged(stack, componentType);   // if it's true

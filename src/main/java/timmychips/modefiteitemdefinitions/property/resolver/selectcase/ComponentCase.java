@@ -80,8 +80,8 @@ public class ComponentCase implements SelectPropertyHandler {
         if (!(value instanceof ItemEnchantments enchantments)) return Optional.empty();
 
         Map<String, Integer> entries = new HashMap<>();
-        for (Holder<net.minecraft.enchantment.Enchantment> entry : enchantments.getEnchantments()) {
-            ResourceLocation id = entry.getKey().map(ResourceKey::getValue).orElse(null);
+        for (Holder<net.minecraft.world.item.enchantment.Enchantment> entry : enchantments.keySet()) {
+            ResourceLocation id = entry.unwrapKey().map(ResourceKey::location).orElse(null);
             if (id != null) entries.put(id.toString(), enchantments.getLevel(entry));
         }
         return Optional.of(entries);
@@ -89,7 +89,7 @@ public class ComponentCase implements SelectPropertyHandler {
 
     public static boolean matchesAll(Map<String, Integer> want, Map<String, Integer> actual) {
         for (Map.Entry<String, Integer> entry : want.entrySet()) {
-            if (!entry.value().equals(actual.get(entry.getKey()))) return false;
+            if (!entry.getValue().equals(actual.get(entry.getKey()))) return false;
         }
         return true;
     }

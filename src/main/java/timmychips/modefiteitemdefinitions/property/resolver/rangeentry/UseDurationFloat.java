@@ -16,6 +16,6 @@ public class UseDurationFloat implements RangePropertyHandler {
     }
 
     public static int getTicksUsed(ItemStack stack, LivingEntity user) {
-        return stack.getMaxUseTime(user) - user.getUseItemRemainingTicks();
+        return stack.getUseDuration(user) - user.getUseItemRemainingTicks();
     }
 }

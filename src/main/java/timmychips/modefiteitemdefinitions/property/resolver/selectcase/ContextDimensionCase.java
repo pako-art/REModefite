@@ -15,7 +15,7 @@ public class ContextDimensionCase implements SelectPropertyHandler {
     @Override
     public String getValue(ItemStack stack, LivingEntity entity, ItemDisplayContext mode, SelectDefinition.Definition definition) {
         if (entity == null) return null;
-        ClientLevel clientWorld = Minecraft.getInstance().world;
-        return clientWorld != null ? clientWorld.dimension().value().toString() : null;
+        ClientLevel clientWorld = Minecraft.getInstance().level;
+        return clientWorld != null ? clientWorld.dimension().location().toString() : null;
     }
 }

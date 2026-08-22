@@ -15,7 +15,7 @@ import timmychips.modefiteitemdefinitions.property.type.codec.SelectDefinition;
 public class MainHandCase implements SelectPropertyHandler {
     @Override
     public String getValue(ItemStack stack, LivingEntity entity, ItemDisplayContext mode, SelectDefinition.Definition definition) {
-        HumanoidArm mainArm = Minecraft.getInstance().options.getSyncedOptions().mainArm();
+        HumanoidArm mainArm = Minecraft.getInstance().options.mainHand().get();
         if (entity != null) mainArm = entity.getMainArm();
 
         return mainArm.toString().toLowerCase();

@@ -70,7 +70,7 @@ public class ClockTimeFloat implements RangePropertyHandler {
         private final String name;
 
         ClockSource(String name) { this.name = name; }
-        public String asString() { return name; }
+        public String getSerializedName() { return name; }
         abstract float getRandomAngle(ClientLevel world, ItemStack stack, Entity user, RandomSource random);
     }
 }

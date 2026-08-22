@@ -51,7 +51,7 @@ public class ComponentBool implements ConditionPropertyHandler {
 
         // Test match item's sub predicate value with model definition value
         try {
-            DynamicOps<JsonElement> registryOps = RegistryOps.of(
+            DynamicOps<JsonElement> registryOps = RegistryOps.create(
                     JsonOps.INSTANCE,
                     Objects.requireNonNull(Minecraft.getInstance().getConnection()).registryAccess());
 
@@ -61,7 +61,7 @@ public class ComponentBool implements ConditionPropertyHandler {
                     .map(Pair::getFirst);
 
             if (parsed.isPresent()) {
-                return parsed.get().test(stack);
+                return parsed.get().matches(stack);
             } else {
                 String key = stack.getItem().toString() + "|" + "minecraft:component";
                 if (WARNED_MODELS.add(key)) LOGGER.warn("Failed to decode predicate value for '{}': {}", predicateId, value);

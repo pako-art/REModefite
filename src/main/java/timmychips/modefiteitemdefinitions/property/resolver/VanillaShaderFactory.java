@@ -24,9 +24,9 @@ public class VanillaShaderFactory {
     }
 
     private static ResourceProvider build(String namespace) {
-        Pack vanilla = Minecraft.getInstance().getResourcePackRepository().getProfile("vanilla");
+        Pack vanilla = Minecraft.getInstance().getResourcePackRepository().getPack("vanilla");
         FallbackResourceManager manager = new FallbackResourceManager(PackType.CLIENT_RESOURCES, namespace);
-        manager.addPack(vanilla.open());
+        manager.push(vanilla.open());
         return manager;
     }
 }

@@ -1,5 +1,6 @@
 package timmychips.modefiteitemdefinitions.property.resolver.selectcase;
 
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.ItemStack;
@@ -13,6 +14,6 @@ public class ContextEntityTypeCase implements SelectPropertyHandler {
     @Override
     public String getValue(ItemStack stack, LivingEntity entity, ItemDisplayContext mode, SelectDefinition.Definition definition) {
         if (entity == null) return null;
-        return entity.getType().getRegistryEntry().registryKey().value().toString();
+        return BuiltInRegistries.ENTITY_TYPE.getKey(entity.getType()).toString();
     }
 }

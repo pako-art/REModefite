@@ -11,7 +11,7 @@ import net.minecraft.core.UUIDUtil;
 import java.util.UUID;
 
 public record UseKeyS2CPayload(UUID playerUuid, ItemStack itemStack, boolean isUsing) implements CustomPacketPayload {
-    public static final ResourceLocation ID = ResourceLocation.parse(ServerInitializer.MOD_ID, "use_key_sync");
+    public static final ResourceLocation ID = ResourceLocation.fromNamespaceAndPath(ServerInitializer.MOD_ID, "use_key_sync");
     public static final CustomPacketPayload.Id<UseKeyS2CPayload> PACKET_ID = new CustomPacketPayload.Id<>(ID);
 
     public static final StreamCodec<RegistryFriendlyByteBuf, UseKeyS2CPayload> CODEC = StreamCodec.tuple(
