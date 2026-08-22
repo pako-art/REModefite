@@ -44,7 +44,11 @@ public final class RangeDispatchDefinition {
             ).apply(instance,
                     (type, property, entries, fallbackOpt, optCompassTarget, optWobble, optCountNormalize, optClockSource, optUsePeriod, optUseRemaining, scale) ->
                     new Definition(
-                            type, property, entries, fallbackOpt.orElse(null),
+                            // Sorted once, here. The order depends only on the JSON
+                            // thresholds, so re-sorting it inside the resolver ran an
+                            // O(n log n) pass per item per frame for a result that never
+                            // changes. Immutable so the render thread cannot see it move.
+                            type, property, sortedByThresholdDesc(entries), fallbackOpt.orElse(null),
                             optCompassTarget.orElse(null), optWobble.orElse(true),
                             optCountNormalize.orElse(true),
                             optClockSource.orElse(null),
@@ -55,6 +59,13 @@ public final class RangeDispatchDefinition {
         }
 
         public static final ResourceLocation TYPE = ResourceLocation.parse("minecraft:range_dispatch");
+
+        /** Highest threshold first, which is the order the resolver scans in. */
+        private static List<ThresholdEntry> sortedByThresholdDesc(List<ThresholdEntry> entries) {
+            return entries.stream()
+                    .sorted((a, b) -> Float.compare(b.threshold(), a.threshold()))
+                    .toList();
+        }
 
         @Override
         public MapCodec<? extends ItemModelDefinition> getCodec() {

@@ -23,7 +23,13 @@ import java.util.concurrent.ConcurrentHashMap;
 public class ResolveRecursive {
 
     private static final Logger LOGGER = LogUtils.getLogger();
+
+    /** Compared by identity instead of building a String on every resolve. */
+    private static final ResourceLocation COMPONENT_PROPERTY = ResourceLocation.withDefaultNamespace("component");
     public static final Set<String> WARNED_MODELS = ConcurrentHashMap.newKeySet();
+
+    /** EmptyItemModel holds no state; allocating one per resolve was pure garbage. */
+    private static final Optional<BakedModel> EMPTY_MODEL = Optional.of(new EmptyItemModel());
 
     /**
      * Lookup for the standalone models this mod registers.
@@ -58,10 +64,20 @@ public class ResolveRecursive {
         switch (def) {
             case ModelDefinition model -> {
                 BakedModel bakedModel = modelLookup.apply(model.model());
-                return bakedModel == null ? Optional.empty() : Optional.of(bakedModel);
+                // A registered id whose file is absent does not come back null:
+                // ModelBakery bakes the missing model under that id, so the lookup
+                // succeeds and upstream renders a full-size magenta cube in hand.
+                // Report nothing instead, which leaves vanilla to draw the item.
+                if (bakedModel == null || bakedModel == getMissingModel()) {
+                    if (WARNED_MODELS.add("missing|" + model.model())) {
+                        LOGGER.warn("Item definition points at a model that failed to load: {}. Falling back to the vanilla item model.", model.model());
+                    }
+                    return Optional.empty();
+                }
+                return Optional.of(bakedModel);
             }
             case EmptyModelDefinition emptyModelDefinition -> {
-                return Optional.of(new EmptyItemModel());
+                return EMPTY_MODEL;  // stateless, so one instance serves every call
             }
             case CompositeModelDefinition composite -> {
                 if (composite.models().isEmpty()) return missingFallbackModel(stack, null, composite.type());
@@ -69,7 +85,7 @@ public class ResolveRecursive {
             }
             case SelectDefinition.Definition select -> {
                 // Component map predicates (e.g. stored_enchantments) match against a map, not a single value
-                if (select.property().toString().equals("minecraft:component") && select.component() != null) {
+                if (COMPONENT_PROPERTY.equals(select.property()) && select.component() != null) {
                     Optional<Map<String, Integer>> componentEntries = ComponentCase.getComponentEntries(stack, select.component());
                     if (componentEntries.isPresent()) {
                         for (SelectDefinition.Case<String> c : select.cases()) {
@@ -106,15 +122,17 @@ public class ResolveRecursive {
             case RangeDispatchDefinition.Definition range -> {
                 float value = RangeDispatchValueResolver.evaluate(range.property(), range.scale(), stack, entity, range);
 
-                ItemDisplayContext finalRenderMode = renderMode;
-                return range.entries().stream()
-                        .sorted((a, b) -> Float.compare(b.threshold(), a.threshold())) // highest threshold first
-                        .filter(entry -> value >= entry.threshold())
-                        .findFirst()
-                        .map(entry -> resolve(entry.model(), finalRenderMode, stack, entity))
-                        .orElseGet(() -> range.fallback() != null
-                                ? resolve(range.fallback(), finalRenderMode, stack, entity)
-                                : missingFallbackModel(stack, range.property(), range.type()));
+                // entries() arrives sorted highest-threshold-first from the codec,
+                // so the first match is the right one. No stream, no sort, no
+                // lambda allocation on a path that runs per item per frame.
+                for (RangeDispatchDefinition.ThresholdEntry entry : range.entries()) {
+                    if (value >= entry.threshold()) {
+                        return resolve(entry.model(), renderMode, stack, entity);
+                    }
+                }
+                return range.fallback() != null
+                        ? resolve(range.fallback(), renderMode, stack, entity)
+                        : missingFallbackModel(stack, range.property(), range.type());
             }
             default -> {
             }
@@ -134,7 +152,7 @@ public class ResolveRecursive {
         }
 
         ///  For composite model type
-        if (type.getPath().equals("composite")) {
+        if (type != null && type.getPath().equals("composite")) {
             String key = stack.getItem().toString() + "|" + type;
             if (WARNED_MODELS.add(key)) {
                 LOGGER.warn("Composite model has no valid models defined '{}', item: '{}'", type, stack.getItem());

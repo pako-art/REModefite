@@ -72,6 +72,9 @@ public class ItemModelTypes {
         public static void clear() {
             INVALID_MODEL_TYPES.clear();
             definitions.clear();
+            // Was left behind on every resource reload, so getRoot() could still
+            // answer with a definition from a pack set that is no longer active.
+            rootDefinitions.clear();
         }
 
         public static Set<ResourceLocation> getAllModelDependencies() {

@@ -195,15 +195,16 @@ public abstract class HeldItemMixin {
         ModelManager missingModelManager = Minecraft.getInstance().getModelManager();
 
         // If item's items model definition has an invalid model type, returns missing item model
-        for (ResourceLocation id : ItemModelTypes.Registry.INVALID_MODEL_TYPES) {
-            if (BuiltInRegistries.ITEM.getKey(stack.getItem()).equals(id)) { // Checks if INVALID_TYPES Set contains item id
-                return missingModelManager.getMissingModel(); // Item renders as Missing Model
-            }
+        // One registry lookup and a set membership test. Upstream called getKey()
+        // inside the loop, once per entry, for what a Set already answers in O(1).
+        ResourceLocation itemId = BuiltInRegistries.ITEM.getKey(stack.getItem());
+        if (ItemModelTypes.Registry.INVALID_MODEL_TYPES.contains(itemId)) {
+            return missingModelManager.getMissingModel();
         }
 
         if (mode == null) mode = ItemDisplayContext.GUI;
 
-        Optional<BakedModel> maybeModel = resolveModel(BuiltInRegistries.ITEM.getKey(stack.getItem()), mode, stack, entity);
+        Optional<BakedModel> maybeModel = resolveModel(itemId, mode, stack, entity);
         if (maybeModel != null && maybeModel.isPresent()) {
             return maybeModel.get();
         }
