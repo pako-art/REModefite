@@ -29,6 +29,22 @@ public class ResolveRecursive {
     private static final ResourceLocation COMPONENT_PROPERTY = ResourceLocation.withDefaultNamespace("component");
     public static final Set<String> WARNED_MODELS = ConcurrentHashMap.newKeySet();
 
+    /** Per-category sets of items already warned about. */
+    private static final Map<String, Set<net.minecraft.world.item.Item>> WARNED_ITEMS = new ConcurrentHashMap<>();
+
+    /**
+     * Whether this is the first warning of {@code category} for this item.
+     *
+     * <p>The call sites built "item|category" by concatenation before testing
+     * the set, so each allocated two strings plus an Item.toString() per item
+     * per frame - for a message logged once per session. Keying on the Item
+     * instance costs nothing after the first call, and the lambda passed to
+     * computeIfAbsent captures nothing, so it is not allocated either.
+     */
+    public static boolean warnOnce(String category, ItemStack stack) {
+        return WARNED_ITEMS.computeIfAbsent(category, k -> ConcurrentHashMap.newKeySet()).add(stack.getItem());
+    }
+
     /** EmptyItemModel holds no state; allocating one per resolve was pure garbage. */
     private static final Optional<BakedModel> EMPTY_MODEL = Optional.of(new EmptyItemModel());
 
@@ -183,16 +199,14 @@ public class ResolveRecursive {
     private static Optional<BakedModel> missingFallbackModel(ItemStack stack, ResourceLocation property, @Nullable ResourceLocation type) {
         /// For properties of condition, select, range_dispatch types
         if (property != null) {
-            String key = stack.getItem().toString() + "|" + property;
-            if (WARNED_MODELS.add(key)) {
+            if (warnOnce(property.toString(), stack)) {
                 LOGGER.warn("No matching model found for property '{}', item: '{}'", property, stack.getItem());
             }
         }
 
         ///  For composite model type
         if (type != null && type.getPath().equals("composite")) {
-            String key = stack.getItem().toString() + "|" + type;
-            if (WARNED_MODELS.add(key)) {
+            if (warnOnce(type.toString(), stack)) {
                 LOGGER.warn("Composite model has no valid models defined '{}', item: '{}'", type, stack.getItem());
             }
         }

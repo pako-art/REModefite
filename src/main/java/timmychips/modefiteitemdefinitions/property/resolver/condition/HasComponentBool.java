@@ -30,16 +30,14 @@ public class HasComponentBool implements ConditionPropertyHandler {
         // Parse string to ResourceLocation id
         ResourceLocation componentId = ResourceLocation.tryParse(component);
         if (componentId == null) {
-            String key = stack.getItem().toString() + "|" + "minecraft:has_component";
-            if (WARNED_MODELS.add(key)) LOGGER.warn("Invalid component predicate ID '{}'", component);
+            if (ResolveRecursive.warnOnce("minecraft:has_component", stack)) LOGGER.warn("Invalid component predicate ID '{}'", component);
             return false;
         }
 
         // Get component type from ResourceLocation
         DataComponentType<?> componentType = BuiltInRegistries.DATA_COMPONENT_TYPE.get(componentId);
         if (componentType == null) {
-            String key = stack.getItem().toString() + "|" + "minecraft:has_component";
-            if (WARNED_MODELS.add(key)) LOGGER.warn("Unknown component predicate componentType '{}'", componentId);
+            if (ResolveRecursive.warnOnce("minecraft:has_component", stack)) LOGGER.warn("Unknown component predicate componentType '{}'", componentId);
             return false;
         }
 

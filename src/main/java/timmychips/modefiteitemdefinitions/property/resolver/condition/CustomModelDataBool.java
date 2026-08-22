@@ -21,8 +21,7 @@ public class CustomModelDataBool implements ConditionPropertyHandler {
     @Override
     public boolean getValue(ItemStack stack, LivingEntity entity, ConditionDefinition definition) {
         // Warning that custom_model_data is only an integer in versions below 1.21.4
-        String key = stack.getItem().toString() + "|" + "minecraft:custom_model_data";
-        if (WARNED_MODELS.add(key)) LOGGER.warn("Unable to read 'custom_model_data' for type: 'minecraft:condition' since component is an integer in this version. Defaulting to be true if component is present on item.");
+        if (ResolveRecursive.warnOnce("minecraft:custom_model_data", stack)) LOGGER.warn("Unable to read 'custom_model_data' for type: 'minecraft:condition' since component is an integer in this version. Defaulting to be true if component is present on item.");
 
         // Will still check if custom_model_data component is there
         var custom_model_data = stack.get(DataComponents.CUSTOM_MODEL_DATA);

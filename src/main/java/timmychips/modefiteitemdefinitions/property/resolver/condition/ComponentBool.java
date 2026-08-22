@@ -37,15 +37,14 @@ public class ComponentBool implements ConditionPropertyHandler {
         // Parse to ResourceLocation
         ResourceLocation predicateId = ResourceLocation.tryParse(predicate);
         if (predicateId == null) {
-            String key = stack.getItem().toString() + "|" + "minecraft:component";if (WARNED_MODELS.add(key)) LOGGER.warn("Invalid component predicate ID '{}'", predicate);
+            if (ResolveRecursive.warnOnce("minecraft:component", stack)) LOGGER.warn("Invalid component predicate ID '{}'", predicate);
             return false;
         }
 
         // Retrieve item sub predicate type from ID
         ItemSubPredicate.Type<?> type = BuiltInRegistries.ITEM_SUB_PREDICATE_TYPE.get(predicateId);
         if (type == null) {
-            String key = stack.getItem().toString() + "|" + "minecraft:component";
-            if (WARNED_MODELS.add(key)) LOGGER.warn("Unknown component predicate type '{}'", predicateId);
+            if (ResolveRecursive.warnOnce("minecraft:component", stack)) LOGGER.warn("Unknown component predicate type '{}'", predicateId);
             return false;
         }
 
@@ -63,14 +62,12 @@ public class ComponentBool implements ConditionPropertyHandler {
             if (parsed.isPresent()) {
                 return parsed.get().matches(stack);
             } else {
-                String key = stack.getItem().toString() + "|" + "minecraft:component";
-                if (WARNED_MODELS.add(key)) LOGGER.warn("Failed to decode predicate value for '{}': {}", predicateId, value);
+                if (ResolveRecursive.warnOnce("minecraft:component", stack)) LOGGER.warn("Failed to decode predicate value for '{}': {}", predicateId, value);
                 return false;
             }
 
         } catch (Exception e) {
-            String key = stack.getItem().toString() + "|" + "minecraft:component";
-            if (WARNED_MODELS.add(key)) LOGGER.error("Error parsing component predicate JSON for '{}': {}", predicateId, value, e);
+            if (ResolveRecursive.warnOnce("minecraft:component", stack)) LOGGER.error("Error parsing component predicate JSON for '{}': {}", predicateId, value, e);
             return false;
         }
     }

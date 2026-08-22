@@ -35,8 +35,7 @@ public class ComponentCase implements SelectPropertyHandler {
 
         ResourceLocation componentId = ResourceLocation.tryParse(component); // Parse string to id
         if (componentId == null) {
-            String key = stack.getItem().toString() + "|" + "minecraft:component";
-            if (WARNED_MODELS.add(key)) LOGGER.warn("Invalid component predicate ID '{}'", component);
+            if (ResolveRecursive.warnOnce("minecraft:component", stack)) LOGGER.warn("Invalid component predicate ID '{}'", component);
             return null;
         }
 
@@ -50,8 +49,7 @@ public class ComponentCase implements SelectPropertyHandler {
                 if (entityVariant != null) return castEntityVariantComponents(stack, component);
             }
             else {
-                String key = stack.getItem().toString() + "|" + "minecraft:component";
-                if (WARNED_MODELS.add(key)) LOGGER.warn("Unknown component predicate componentType: '{}'", componentId);
+                if (ResolveRecursive.warnOnce("minecraft:component", stack)) LOGGER.warn("Unknown component predicate componentType: '{}'", componentId);
                 return null;
             }
         }

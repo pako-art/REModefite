@@ -20,8 +20,7 @@ public class CustomModelDataFloat implements RangePropertyHandler {
     @Override
     public float getValue(ItemStack stack, LivingEntity entity, RangeDispatchDefinition.Definition definition) {
         // Warning that custom_model_data is only an integer in versions below 1.21.4
-        String key = stack.getItem().toString() + "|" + "minecraft:custom_model_data";
-        if (WARNED_MODELS.add(key)) LOGGER.warn("Unable to read 'custom_model_data' for type: 'minecraft:range_dispatch' since component is an integer in this version. Defaulting to use integer values.");
+        if (ResolveRecursive.warnOnce("minecraft:custom_model_data", stack)) LOGGER.warn("Unable to read 'custom_model_data' for type: 'minecraft:range_dispatch' since component is an integer in this version. Defaulting to use integer values.");
 
         CustomModelData custom_model_data = stack.get(DataComponents.CUSTOM_MODEL_DATA);
         return custom_model_data != null ? (float) custom_model_data.value() : 0F;
