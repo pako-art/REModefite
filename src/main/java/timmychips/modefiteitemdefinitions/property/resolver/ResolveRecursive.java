@@ -2,7 +2,6 @@ package timmychips.modefiteitemdefinitions.property.resolver;
 
 import com.mojang.logging.LogUtils;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.renderer.texture.MissingTextureAtlasSprite;
 import net.minecraft.client.resources.model.BakedModel;
 import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.entity.LivingEntity;
@@ -81,26 +80,23 @@ public class ResolveRecursive {
     }
 
     /**
-     * Whether a lookup produced the missing model rather than the real thing.
+     * Whether a lookup produced no usable model.
      *
-     * <p>Identity is not reliable here. ModelBakery substitutes a missing model
-     * for a registered id it could not load, but the instance handed back is not
-     * necessarily the one {@code ModelManager.getMissingModel()} returns, nor the
-     * one stored under {@code MISSING_MODEL_VARIANT} - three separate instances
-     * were observed. So this asks what the model is made of instead of which
-     * object it is: every missing model, whichever instance, carries the
-     * missingno texture as its particle icon.
+     * <p>Identity only, deliberately. An earlier version also treated any model
+     * whose particle icon was the missingno texture as missing, which caught
+     * four models that had loaded perfectly well and merely referenced a texture
+     * the atlas could not resolve - copper_ingot_hand, golden_ingot_hand,
+     * iron_ingot_hand and heart_of_the_sea_hand all rendered vanilla instead of
+     * their 3D shape. A model with a missing texture is still a model; only a
+     * model that never baked is not.
+     *
+     * <p>The cost of narrowing it back is that a model which failed to bake and
+     * came back as an instance other than these two is not recognised, and
+     * renders as the magenta cube - the same as both upstream builds do. That
+     * is worse for one item and better for four.
      */
     private static boolean isMissing(BakedModel model) {
-        if (model == null || model == bakedMissingModel || model == getMissingModel()) {
-            return true;
-        }
-        try {
-            return MissingTextureAtlasSprite.getLocation().equals(model.getParticleIcon().contents().name());
-        } catch (Exception e) {
-            // A model that cannot even report a particle icon is not usable either.
-            return true;
-        }
+        return model == null || model == bakedMissingModel || model == getMissingModel();
     }
 
     /** Fetch missing model safely */
