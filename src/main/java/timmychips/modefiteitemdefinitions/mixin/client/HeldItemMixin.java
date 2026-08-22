@@ -43,7 +43,7 @@ public abstract class HeldItemMixin {
     private static final ThreadLocal<Boolean> RENDERING_LIVING_ENTITY = ThreadLocal.withInitial(() -> false);
 
     // Gets custom model for GUI model mode so the item model changes for the GUI
-    @Inject(method = "getModel(Lnet/minecraft/item/ItemStack;Lnet/minecraft/world/Level;Lnet/minecraft/entity/LivingEntity;I)Lnet/minecraft/client/render/model/BakedModel;",
+    @Inject(method = "getModel(Lnet/minecraft/world/item/ItemStack;Lnet/minecraft/world/level/Level;Lnet/minecraft/world/entity/LivingEntity;I)Lnet/minecraft/client/resources/model/BakedModel;",
             at = @At("HEAD"),
             cancellable = true)
     private void modefite$overrideGUIModel(ItemStack stack, Level world, LivingEntity entity, int seed, CallbackInfoReturnable<BakedModel> cir) {
@@ -54,18 +54,18 @@ public abstract class HeldItemMixin {
     }
 
     @Shadow
-    private void renderBakedItemModel(BakedModel model, ItemStack stack, int light, int overlay, PoseStack matrices, VertexConsumer vertices) {/*dummy body*/}
+    private void renderModelLists(BakedModel model, ItemStack stack, int light, int overlay, PoseStack matrices, VertexConsumer vertices) {/*dummy body*/}
 
     @Shadow
-    private final BlockEntityWithoutLevelRenderer builtinModelItemRenderer = this.builtinModelItemRenderer;
+    private final BlockEntityWithoutLevelRenderer blockEntityRenderer = this.blockEntityRenderer;
 
-    @Shadow
-    private static boolean usesDynamicDisplay(ItemStack stack) {
+    @Unique
+    private static boolean modefite$usesDynamicDisplay(ItemStack stack) {
         return stack.is(ItemTags.COMPASSES) || stack.is(Items.CLOCK);
     }
 
     @Shadow
-    public static VertexConsumer getDirectItemGlintConsumer(MultiBufferSource provider, RenderType layer, boolean solid, boolean glint) {
+    public static VertexConsumer getFoilBufferDirect(MultiBufferSource provider, RenderType layer, boolean solid, boolean glint) {
         return glint
                 ? VertexMultiConsumer.create(provider.getBuffer(solid ? RenderType.glint() : RenderType.entityGlintDirect()), provider.getBuffer(layer))
                 : provider.getBuffer(layer);
@@ -75,7 +75,7 @@ public abstract class HeldItemMixin {
      * Performs item renderer methods for each baked model if baked model is a composite item model
      * <p> Code is mostly from vanilla target method with the major difference being it performs the method for each modelPart of the composite item model
      */
-    @Inject(method = "renderItem(Lnet/minecraft/item/ItemStack;Lnet/minecraft/client/render/model/json/ItemDisplayContext;ZLnet/minecraft/client/util/math/PoseStack;Lnet/minecraft/client/render/MultiBufferSource;IILnet/minecraft/client/render/model/BakedModel;)V",
+    @Inject(method = "render(Lnet/minecraft/world/item/ItemStack;Lnet/minecraft/world/item/ItemDisplayContext;ZLcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/MultiBufferSource;IILnet/minecraft/client/resources/model/BakedModel;)V",
             at = @At(value = "HEAD"),
             cancellable = true)
     private void modefite$renderCompositeOrItemEntityModel(ItemStack stack, ItemDisplayContext renderMode, boolean leftHanded, PoseStack matrices, MultiBufferSource vertexConsumers, int light, int overlay, BakedModel model, CallbackInfo ci) {
@@ -98,7 +98,7 @@ public abstract class HeldItemMixin {
                             RenderType renderLayer = ItemBlockRenderTypes.getRenderType(stack, true);
                             VertexConsumer vertexConsumer;
 
-                            vertexConsumer = getDirectItemGlintConsumer(vertexConsumers, renderLayer, true, stack.hasFoil());
+                            vertexConsumer = getFoilBufferDirect(vertexConsumers, renderLayer, true, stack.hasFoil());
 
                             PoseStack.Pose entry = matrices.last().copy();
                             if (renderMode == ItemDisplayContext.GUI) {
@@ -107,10 +107,10 @@ public abstract class HeldItemMixin {
                                 entry.pose().scale(0.75F);
                             }
 
-                            this.renderBakedItemModel(modelPart, stack, light, overlay, matrices, vertexConsumer);
+                            this.renderModelLists(modelPart, stack, light, overlay, matrices, vertexConsumer);
                         }
                         else {
-                            this.builtinModelItemRenderer.renderByItem(stack, renderMode, matrices, vertexConsumers, light, overlay);
+                            this.blockEntityRenderer.renderByItem(stack, renderMode, matrices, vertexConsumers, light, overlay);
                         }
                         matrices.popPose(); // Pop matrix to prevent render errors for next element in list
                     }
@@ -136,7 +136,7 @@ public abstract class HeldItemMixin {
     }
 
     // Replaces entity item render with our custom model
-    @Inject(method = "renderItem(Lnet/minecraft/entity/LivingEntity;Lnet/minecraft/item/ItemStack;Lnet/minecraft/client/render/model/json/ItemDisplayContext;ZLnet/minecraft/client/util/math/PoseStack;Lnet/minecraft/client/render/MultiBufferSource;Lnet/minecraft/world/Level;III)V",
+    @Inject(method = "renderStatic(Lnet/minecraft/world/entity/LivingEntity;Lnet/minecraft/world/item/ItemStack;Lnet/minecraft/world/item/ItemDisplayContext;ZLcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/MultiBufferSource;Lnet/minecraft/world/level/Level;III)V",
             at = @At(value = "HEAD"),
             cancellable = true)
     private void modefite$interceptRender(LivingEntity entity, ItemStack item, ItemDisplayContext renderMode, boolean leftHanded,
@@ -166,7 +166,7 @@ public abstract class HeldItemMixin {
 
     /*
     @Inject(
-            method = "renderItem(Lnet/minecraft/entity/LivingEntity;Lnet/minecraft/item/ItemStack;Lnet/minecraft/client/render/model/json/ItemDisplayContext;ZLnet/minecraft/client/util/math/PoseStack;Lnet/minecraft/client/render/MultiBufferSource;Lnet/minecraft/world/Level;III)V",
+            method = "renderStatic(Lnet/minecraft/world/entity/LivingEntity;Lnet/minecraft/world/item/ItemStack;Lnet/minecraft/world/item/ItemDisplayContext;ZLcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/MultiBufferSource;Lnet/minecraft/world/level/Level;III)V",
             at = @At("HEAD")
     )
     private void modefite$markEntityRenderStart(LivingEntity entity, ItemStack stack, ItemDisplayContext mode, boolean leftHanded,
@@ -178,7 +178,7 @@ public abstract class HeldItemMixin {
      */
 
     @Inject(
-            method = "renderItem(Lnet/minecraft/entity/LivingEntity;Lnet/minecraft/item/ItemStack;Lnet/minecraft/client/render/model/json/ItemDisplayContext;ZLnet/minecraft/client/util/math/PoseStack;Lnet/minecraft/client/render/MultiBufferSource;Lnet/minecraft/world/Level;III)V",
+            method = "renderStatic(Lnet/minecraft/world/entity/LivingEntity;Lnet/minecraft/world/item/ItemStack;Lnet/minecraft/world/item/ItemDisplayContext;ZLcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/MultiBufferSource;Lnet/minecraft/world/level/Level;III)V",
             at = @At("RETURN")
     )
     private void modefite$markEntityRenderEnd(LivingEntity entity, ItemStack stack, ItemDisplayContext mode, boolean leftHanded,

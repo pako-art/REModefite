@@ -3,7 +3,6 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.inventory.Slot;
-import timmychips.modefiteitemdefinitions.mixin.client.HandleSlotAccessor;
 
 public class MouseHelper {
     public static boolean isHoveredOverStack(ItemStack target, Minecraft client) {
@@ -14,8 +13,8 @@ public class MouseHelper {
         double mouseY = client.mouseHandler.ypos() * (double) client.getWindow().getGuiScaledHeight() / (double) client.getWindow().getHeight();
 
 
-        int guiLeft = ((HandleSlotAccessor) screen).getX(); // Get screen coordinates from Mixin accessor
-        int guiTop = ((HandleSlotAccessor) screen).getY();
+        int guiLeft = screen.getGuiLeft(); // NeoForge exposes these publicly; the Fabric port needed an @Accessor mixin
+        int guiTop = screen.getGuiTop();
 
         for (Slot slot : screen.getMenu().slots) {
             int slotX = guiLeft + slot.x;

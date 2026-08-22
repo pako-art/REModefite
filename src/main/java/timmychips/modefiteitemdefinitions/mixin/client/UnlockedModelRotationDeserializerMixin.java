@@ -14,7 +14,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
  */
 @Mixin(targets = "net.minecraft.client.renderer.block.model.BlockElement$Deserializer")
 public abstract class UnlockedModelRotationDeserializerMixin implements JsonDeserializer<BlockElement> {
-    @Inject(method = "deserializeRotationAngle(Lcom/google/gson/JsonObject;)F", at = @At("HEAD"), cancellable = true)
+    @Inject(method = "getAngle(Lcom/google/gson/JsonObject;)F", at = @At("HEAD"), cancellable = true)
     private void modefite$unlockedRotationAngle(JsonObject object, CallbackInfoReturnable<Float> cir) {
         float unlockedAngle = GsonHelper.getAsFloat(object, "angle");
         cir.setReturnValue(unlockedAngle);

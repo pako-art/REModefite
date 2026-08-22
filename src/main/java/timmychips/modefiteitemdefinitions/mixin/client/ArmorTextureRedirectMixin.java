@@ -13,7 +13,7 @@ import timmychips.modefiteitemdefinitions.property.resolver.ArmorTextureRedirect
  */
 @Mixin(ArmorMaterial.Layer.class)
 public abstract class ArmorTextureRedirectMixin {
-    @Inject(method = "getTexture", at = @At("RETURN"), cancellable = true)
+    @Inject(method = "texture", at = @At("RETURN"), cancellable = true)
     private void modefite$redirectToNewEquipmentTexture(boolean secondLayer, CallbackInfoReturnable<ResourceLocation> cir) {
         ResourceLocation legacy = cir.getReturnValue();
         ResourceLocation redirected = ArmorTextureRedirect.redirect(legacy);

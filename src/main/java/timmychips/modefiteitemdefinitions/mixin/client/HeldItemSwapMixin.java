@@ -48,10 +48,10 @@ public abstract class HeldItemSwapMixin {
     }
 
     @ModifyArg(
-            method = "renderFirstPersonItem",
+            method = "renderArmWithItem",
             at = @At(
                     value = "INVOKE",
-                    target = "Lnet/minecraft/client/render/item/ItemInHandRenderer;renderArmHoldingItem(Lnet/minecraft/client/util/math/PoseStack;Lnet/minecraft/client/render/MultiBufferSource;IFFLnet/minecraft/util/HumanoidArm;)V"
+                    target = "Lnet/minecraft/client/renderer/ItemInHandRenderer;renderPlayerArm(Lcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/MultiBufferSource;IFFLnet/minecraft/world/entity/HumanoidArm;)V"
             ),
             index = 3 // equipProgress parameter index
     )
@@ -60,10 +60,10 @@ public abstract class HeldItemSwapMixin {
     }
 
     @ModifyArg(
-            method = "renderFirstPersonItem",
+            method = "renderArmWithItem",
             at = @At(
                     value = "INVOKE",
-                    target = "Lnet/minecraft/client/render/item/ItemInHandRenderer;applyEquipOffset(Lnet/minecraft/client/util/math/PoseStack;Lnet/minecraft/util/HumanoidArm;F)V"
+                    target = "Lnet/minecraft/client/renderer/ItemInHandRenderer;applyItemArmTransform(Lcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/world/entity/HumanoidArm;F)V"
             ),
             index = 2 // equipProgress parameter index
     )

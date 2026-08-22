@@ -20,8 +20,8 @@ import java.io.IOException;
 public abstract class GameRendererShaderResilienceMixin {
     private static final Logger LOGGER = LogUtils.getLogger();
 
-    @Redirect(method = "loadPrograms(Lnet/minecraft/resource/ResourceProvider;)V",
-            at = @At(value = "NEW", target = "Lnet/minecraft/client/gl/ShaderInstance;"))
+    @Redirect(method = "reloadShaders(Lnet/minecraft/server/packs/resources/ResourceProvider;)V",
+            at = @At(value = "NEW", target = "Lnet/minecraft/client/renderer/ShaderInstance;"))
     private ShaderInstance modefite$safeConstructShaderProgram(ResourceProvider factory, String name, VertexFormat format) throws IOException {
         try {
             return new ShaderInstance(factory, name, format);
