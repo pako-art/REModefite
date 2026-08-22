@@ -49,6 +49,24 @@ public class ResolveRecursive {
         modelLookup = lookup;
     }
 
+    /**
+     * The exact instance ModelBakery substitutes for a model it could not load.
+     *
+     * <p>Identity against {@code ModelManager.getMissingModel()} is not enough:
+     * a standalone id that fails to bake can come back as a different instance,
+     * and then the check silently passes and a magenta cube is drawn in hand.
+     * Captured from the same map the lookup reads, so it is always the right one.
+     */
+    private static volatile BakedModel bakedMissingModel;
+
+    public static void setBakedMissingModel(BakedModel model) {
+        bakedMissingModel = model;
+    }
+
+    private static boolean isMissing(BakedModel model) {
+        return model == null || model == bakedMissingModel || model == getMissingModel();
+    }
+
     /** Fetch missing model safely */
     public static BakedModel getMissingModel() {
         return Minecraft.getInstance().getModelManager().getMissingModel();
@@ -68,7 +86,7 @@ public class ResolveRecursive {
                 // ModelBakery bakes the missing model under that id, so the lookup
                 // succeeds and upstream renders a full-size magenta cube in hand.
                 // Report nothing instead, which leaves vanilla to draw the item.
-                if (bakedModel == null || bakedModel == getMissingModel()) {
+                if (isMissing(bakedModel)) {
                     if (WARNED_MODELS.add("missing|" + model.model())) {
                         LOGGER.warn("Item definition points at a model that failed to load: {}. Falling back to the vanilla item model.", model.model());
                     }

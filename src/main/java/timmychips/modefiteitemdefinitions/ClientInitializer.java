@@ -128,7 +128,10 @@ public class ClientInitializer {
 
     /** Captures the baked instances for the ids declared above. */
     private static void onBakingCompleted(ModelEvent.BakingCompleted event) {
+        var models = event.getModels();
+        timmychips.modefiteitemdefinitions.property.resolver.ResolveRecursive.setBakedMissingModel(
+                models.get(net.minecraft.client.resources.model.ModelBakery.MISSING_MODEL_VARIANT));
         timmychips.modefiteitemdefinitions.property.resolver.ResolveRecursive.setModelLookup(
-                id -> event.getModels().get(new ModelResourceLocation(id, "standalone")));
+                id -> models.get(new ModelResourceLocation(id, "standalone")));
     }
 }
