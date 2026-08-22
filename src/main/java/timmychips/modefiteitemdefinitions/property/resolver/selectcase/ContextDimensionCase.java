@@ -1,10 +1,10 @@
 package timmychips.modefiteitemdefinitions.property.resolver.selectcase;
 
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.render.model.json.ModelTransformationMode;
-import net.minecraft.client.world.ClientWorld;
-import net.minecraft.entity.LivingEntity;
-import net.minecraft.item.ItemStack;
+import net.minecraft.client.Minecraft;
+import net.minecraft.world.item.ItemDisplayContext;
+import net.minecraft.client.multiplayer.ClientLevel;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.item.ItemStack;
 import timmychips.modefiteitemdefinitions.property.handler.SelectPropertyHandler;
 import timmychips.modefiteitemdefinitions.property.type.codec.SelectDefinition;
 
@@ -13,9 +13,9 @@ import timmychips.modefiteitemdefinitions.property.type.codec.SelectDefinition;
  */
 public class ContextDimensionCase implements SelectPropertyHandler {
     @Override
-    public String getValue(ItemStack stack, LivingEntity entity, ModelTransformationMode mode, SelectDefinition.Definition definition) {
+    public String getValue(ItemStack stack, LivingEntity entity, ItemDisplayContext mode, SelectDefinition.Definition definition) {
         if (entity == null) return null;
-        ClientWorld clientWorld = MinecraftClient.getInstance().world;
-        return clientWorld != null ? clientWorld.getRegistryKey().getValue().toString() : null;
+        ClientLevel clientWorld = Minecraft.getInstance().world;
+        return clientWorld != null ? clientWorld.dimension().value().toString() : null;
     }
 }

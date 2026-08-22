@@ -4,7 +4,7 @@ import com.mojang.datafixers.util.Either;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
-import net.minecraft.util.Identifier;
+import net.minecraft.resources.ResourceLocation;
 import org.jetbrains.annotations.Nullable;
 import timmychips.modefiteitemdefinitions.property.type.ItemModelTypes;
 
@@ -15,10 +15,10 @@ import static com.mojang.text2speech.Narrator.LOGGER;
 
 public final class SelectDefinition {
     public record Definition(
-            Identifier type,
+            ResourceLocation type,
             List<Case<String>> cases, // Now strictly typed
             @Nullable ItemModelDefinition fallback,
-            Identifier property,
+            ResourceLocation property,
             @Nullable String blockStateProperty,
             boolean chargeIgnoreDefault,
             boolean chargeIgnoreUnknown,
@@ -26,17 +26,17 @@ public final class SelectDefinition {
     ) implements ItemModelDefinition {
 
         /**
-         * List of property identifiers if it should cast the 'when' condition String to an Identifier format.
+         * List of property identifiers if it should cast the 'when' condition String to an ResourceLocation format.
          * <p>For example, items model definition files with "minecraft:context_entity_type" will have the 'when' case "zombie" converted to "minecraft:zombie"
          */
-        private static final List<Identifier> shouldParseToId = List.of(
-                Identifier.of("minecraft:context_dimension"),
-                Identifier.of("minecraft:context_entity_type"),
-                Identifier.of("minecraft:trim_material"),
-                Identifier.of("minecraft:component")
+        private static final List<ResourceLocation> shouldParseToId = List.of(
+                ResourceLocation.parse("minecraft:context_dimension"),
+                ResourceLocation.parse("minecraft:context_entity_type"),
+                ResourceLocation.parse("minecraft:trim_material"),
+                ResourceLocation.parse("minecraft:component")
         );
 
-        // Parses specific property's 'when' conditions to Identifier format.
+        // Parses specific property's 'when' conditions to ResourceLocation format.
         public Definition {
             if (shouldParseToId.contains(property)) {
                 cases = cases.stream()
@@ -46,7 +46,7 @@ public final class SelectDefinition {
                                         .map(whenCondition -> {
                                             // Try parse the condition string into identifier format. If it's string, "null", just return the
                                             // when condition string as is for stuff like the custom_name component
-                                            String idStr = String.valueOf(Identifier.tryParse(whenCondition));
+                                            String idStr = String.valueOf(ResourceLocation.tryParse(whenCondition));
                                             return !idStr.equals("null") ? idStr : whenCondition;
                                         })
                                         .collect(Collectors.toCollection(HashSet::new)))
@@ -57,13 +57,13 @@ public final class SelectDefinition {
 
         public static MapCodec<Definition> codec(Codec<ItemModelDefinition> selfCodec) {
             return RecordCodecBuilder.mapCodec(instance -> instance.group(
-                    Identifier.CODEC.fieldOf("type").forGetter(Definition::type),
+                    ResourceLocation.CODEC.fieldOf("type").forGetter(Definition::type),
                     Case.codec(selfCodec, Codec.STRING)
                             .listOf()
                             .fieldOf("cases")
                             .forGetter(Definition::cases),
                     selfCodec.optionalFieldOf("fallback").forGetter(d -> Optional.ofNullable(d.fallback)),
-                    Identifier.CODEC.fieldOf("property").forGetter(Definition::property),
+                    ResourceLocation.CODEC.fieldOf("property").forGetter(Definition::property),
                     Codec.STRING.optionalFieldOf("block_state_property").forGetter(d -> Optional.ofNullable(d.blockStateProperty)),
                     Codec.BOOL.optionalFieldOf("ignore_default").forGetter(d -> Optional.of(d.chargeIgnoreDefault)),
                     Codec.BOOL.optionalFieldOf("ignore_unknown").forGetter(d -> Optional.of(d.chargeIgnoreUnknown)),
@@ -78,7 +78,7 @@ public final class SelectDefinition {
                     )));
         }
 
-        public static final Identifier TYPE = Identifier.of("minecraft:select");
+        public static final ResourceLocation TYPE = ResourceLocation.parse("minecraft:select");
 
         @Override
         public MapCodec<? extends ItemModelDefinition> getCodec() {
@@ -86,8 +86,8 @@ public final class SelectDefinition {
         }
 
         @Override
-        public Identifier expectedType() {
-            return Identifier.of("minecraft:select");
+        public ResourceLocation expectedType() {
+            return ResourceLocation.parse("minecraft:select");
         }
     }
 
@@ -95,7 +95,7 @@ public final class SelectDefinition {
      * Renders item models based on a property
      * @param model the model to render "when" a certain property is met
      * @param when the property to match for
-     * @param <T> type is either String or Identifier object
+     * @param <T> type is either String or ResourceLocation object
      */
     public record Case<T>(ItemModelDefinition model, Either<HashSet<T>, List<Map<String, Integer>>> when) {
         public static <T> Codec<Case<T>> codec(

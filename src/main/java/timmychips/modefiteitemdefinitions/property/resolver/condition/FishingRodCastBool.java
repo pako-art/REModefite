@@ -1,8 +1,8 @@
 package timmychips.modefiteitemdefinitions.property.resolver.condition;
 
-import net.minecraft.entity.LivingEntity;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.item.ItemStack;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemStack;
 import timmychips.modefiteitemdefinitions.property.handler.ConditionPropertyHandler;
 import timmychips.modefiteitemdefinitions.property.type.codec.ConditionDefinition;
 
@@ -10,8 +10,8 @@ import timmychips.modefiteitemdefinitions.property.type.codec.ConditionDefinitio
 public class FishingRodCastBool implements ConditionPropertyHandler {
     @Override
     public boolean getValue(ItemStack stack, LivingEntity entity, ConditionDefinition definition) {
-        if (entity instanceof PlayerEntity player) {
-            return player.fishHook != null;
+        if (entity instanceof Player player) {
+            return player.fishing != null;
         }
         return false;
     }

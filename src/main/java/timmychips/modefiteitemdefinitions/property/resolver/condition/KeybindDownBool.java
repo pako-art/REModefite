@@ -1,8 +1,8 @@
 package timmychips.modefiteitemdefinitions.property.resolver.condition;
 
-import net.minecraft.client.option.KeyBinding;
-import net.minecraft.entity.LivingEntity;
-import net.minecraft.item.ItemStack;
+import net.minecraft.client.KeyMapping;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.item.ItemStack;
 import timmychips.modefiteitemdefinitions.property.handler.ConditionPropertyHandler;
 import timmychips.modefiteitemdefinitions.property.type.codec.ConditionDefinition;
 
@@ -10,8 +10,8 @@ import timmychips.modefiteitemdefinitions.property.type.codec.ConditionDefinitio
 public class KeybindDownBool implements ConditionPropertyHandler {
     @Override
     public boolean getValue(ItemStack stack, LivingEntity entity, ConditionDefinition definition) {
-        KeyBinding keybind = definition.keybind();
+        KeyMapping keybind = definition.keybind();
         if (keybind == null) return false;
-        return keybind.isPressed();
+        return keybind.isDown();
     }
 }

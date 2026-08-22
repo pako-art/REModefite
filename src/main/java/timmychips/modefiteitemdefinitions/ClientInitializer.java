@@ -7,9 +7,9 @@ import com.mojang.logging.LogUtils;
 import com.mojang.serialization.JsonOps;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.model.loading.v1.ModelLoadingPlugin;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.resource.ResourceManager;
-import net.minecraft.util.Identifier;
+import net.minecraft.client.Minecraft;
+import net.minecraft.server.packs.resources.ResourceManager;
+import net.minecraft.resources.ResourceLocation;
 import org.slf4j.Logger;
 import timmychips.modefiteitemdefinitions.property.registry.ConditionPropertyRegistry;
 import timmychips.modefiteitemdefinitions.property.registry.RangePropertyRegistry;
@@ -26,7 +26,7 @@ public class ClientInitializer implements ClientModInitializer {
 
     public static final String MOD_ID = "modefite";
 	public static final Logger LOGGER = LogUtils.getLogger();
-	public static Collection<Identifier> modelIds;
+	public static Collection<ResourceLocation> modelIds;
 
     // Extra optional fields in Items Model root
     private static final String HAND_ANIMATION_SWAP = "hand_animation_on_swap";
@@ -34,8 +34,8 @@ public class ClientInitializer implements ClientModInitializer {
     private static final String SWAP_ANIMATION_SCALE = "swap_animation_scale"; // Not currently used/functioning
 
     private static void registerResources(String folderName, ResourceManager manager) {
-        for (Identifier id : manager.findResources(folderName, path -> path.getPath().endsWith(".json")).keySet()) {
-            try (InputStream stream = manager.getResource(id).get().getInputStream()) {
+        for (ResourceLocation id : manager.listResources(folderName, path -> path.getPath().endsWith(".json")).keySet()) {
+            try (InputStream stream = manager.getResource(id).get().open()) {
                 JsonElement json = JsonParser.parseReader(new InputStreamReader(stream));
 
                 JsonObject root = json.getAsJsonObject();
@@ -53,7 +53,7 @@ public class ClientInitializer implements ClientModInitializer {
                             .ifPresent(pair -> {
                                 // Clean up path to match item ID (remove "items/" and ".json")
                                 String cleanPath = id.getPath().substring((folderName + "/").length(), id.getPath().length() - ".json".length());
-                                Identifier itemId = Identifier.of(id.getNamespace(), cleanPath);
+                                ResourceLocation itemId = ResourceLocation.parse(id.getNamespace(), cleanPath);
 
                                 ItemModelDefinition definition = pair.getFirst();
                                 ItemModelRootDefinition rootDef = new ItemModelRootDefinition(definition, handAnimationOnSwap, oversizedInGui, swapAnimationScale);
@@ -82,7 +82,7 @@ public class ClientInitializer implements ClientModInitializer {
 
 		ModelLoadingPlugin.register(pluginContext -> {
 
-			ResourceManager manager = MinecraftClient.getInstance().getResourceManager();
+			ResourceManager manager = Minecraft.getInstance().getResourceManager();
 
 			timmychips.modefiteitemdefinitions.property.resolver.ArmorTextureRedirect.clearCache();
 			timmychips.modefiteitemdefinitions.property.resolver.VanillaShaderFactory.clearCache();

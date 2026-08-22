@@ -5,13 +5,13 @@ import com.mojang.datafixers.util.Pair;
 import com.mojang.logging.LogUtils;
 import com.mojang.serialization.DynamicOps;
 import com.mojang.serialization.JsonOps;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.entity.LivingEntity;
-import net.minecraft.item.ItemStack;
-import net.minecraft.predicate.item.ItemSubPredicate;
-import net.minecraft.registry.Registries;
-import net.minecraft.registry.RegistryOps;
-import net.minecraft.util.Identifier;
+import net.minecraft.client.Minecraft;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.advancements.critereon.ItemSubPredicate;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.resources.RegistryOps;
+import net.minecraft.resources.ResourceLocation;
 import org.slf4j.Logger;
 import timmychips.modefiteitemdefinitions.property.handler.ConditionPropertyHandler;
 import timmychips.modefiteitemdefinitions.property.resolver.ResolveRecursive;
@@ -34,15 +34,15 @@ public class ComponentBool implements ConditionPropertyHandler {
 
         if (stack == null || predicate == null || value == null) return false;
 
-        // Parse to Identifier
-        Identifier predicateId = Identifier.tryParse(predicate);
+        // Parse to ResourceLocation
+        ResourceLocation predicateId = ResourceLocation.tryParse(predicate);
         if (predicateId == null) {
             String key = stack.getItem().toString() + "|" + "minecraft:component";if (WARNED_MODELS.add(key)) LOGGER.warn("Invalid component predicate ID '{}'", predicate);
             return false;
         }
 
         // Retrieve item sub predicate type from ID
-        ItemSubPredicate.Type<?> type = Registries.ITEM_SUB_PREDICATE_TYPE.get(predicateId);
+        ItemSubPredicate.Type<?> type = BuiltInRegistries.ITEM_SUB_PREDICATE_TYPE.get(predicateId);
         if (type == null) {
             String key = stack.getItem().toString() + "|" + "minecraft:component";
             if (WARNED_MODELS.add(key)) LOGGER.warn("Unknown component predicate type '{}'", predicateId);
@@ -53,7 +53,7 @@ public class ComponentBool implements ConditionPropertyHandler {
         try {
             DynamicOps<JsonElement> registryOps = RegistryOps.of(
                     JsonOps.INSTANCE,
-                    Objects.requireNonNull(MinecraftClient.getInstance().getNetworkHandler()).getRegistryManager());
+                    Objects.requireNonNull(Minecraft.getInstance().getConnection()).registryAccess());
 
             Optional<? extends ItemSubPredicate> parsed = type.codec()
                     .decode(registryOps, value)

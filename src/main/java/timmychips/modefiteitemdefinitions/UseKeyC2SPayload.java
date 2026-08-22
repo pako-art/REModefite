@@ -1,30 +1,30 @@
 package timmychips.modefiteitemdefinitions;
 
-import net.minecraft.item.ItemStack;
-import net.minecraft.network.RegistryByteBuf;
-import net.minecraft.network.codec.PacketCodec;
-import net.minecraft.network.codec.PacketCodecs;
-import net.minecraft.network.packet.CustomPayload;
-import net.minecraft.util.Identifier;
-import net.minecraft.util.Uuids;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.network.codec.ByteBufCodecs;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.core.UUIDUtil;
 
 import java.util.UUID;
 
 import static timmychips.modefiteitemdefinitions.ServerInitializer.MOD_ID;
 
-public record UseKeyC2SPayload(UUID playerUuid, ItemStack itemStack, boolean isUsing) implements CustomPayload {
-    public static final Identifier ID = Identifier.of(MOD_ID, "use_key");
-    public static final CustomPayload.Id<UseKeyC2SPayload> PACKET_ID = new CustomPayload.Id<>(ID);
+public record UseKeyC2SPayload(UUID playerUuid, ItemStack itemStack, boolean isUsing) implements CustomPacketPayload {
+    public static final ResourceLocation ID = ResourceLocation.parse(MOD_ID, "use_key");
+    public static final CustomPacketPayload.Id<UseKeyC2SPayload> PACKET_ID = new CustomPacketPayload.Id<>(ID);
 
-    public static final PacketCodec<RegistryByteBuf, UseKeyC2SPayload> CODEC = PacketCodec.tuple(
-            Uuids.PACKET_CODEC, UseKeyC2SPayload::playerUuid,
+    public static final StreamCodec<RegistryFriendlyByteBuf, UseKeyC2SPayload> CODEC = StreamCodec.tuple(
+            UUIDUtil.PACKET_CODEC, UseKeyC2SPayload::playerUuid,
             ItemStack.PACKET_CODEC, UseKeyC2SPayload::itemStack,
-            PacketCodecs.BOOL, UseKeyC2SPayload::isUsing,
+            ByteBufCodecs.BOOL, UseKeyC2SPayload::isUsing,
             UseKeyC2SPayload::new
     );
 
     @Override
-    public CustomPayload.Id<? extends CustomPayload> getId() {
+    public CustomPacketPayload.Id<? extends CustomPacketPayload> getId() {
         return PACKET_ID;
     }
 }

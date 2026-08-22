@@ -1,9 +1,9 @@
 package timmychips.modefiteitemdefinitions.property.resolver.condition;
 
-import net.minecraft.entity.LivingEntity;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.item.ItemStack;
-import net.minecraft.util.Hand;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.InteractionHand;
 import timmychips.modefiteitemdefinitions.property.handler.ConditionPropertyHandler;
 import timmychips.modefiteitemdefinitions.property.type.codec.ConditionDefinition;
 
@@ -11,8 +11,8 @@ import timmychips.modefiteitemdefinitions.property.type.codec.ConditionDefinitio
 public class SelectedBool implements ConditionPropertyHandler {
     @Override
     public boolean getValue(ItemStack stack, LivingEntity entity, ConditionDefinition definition) {
-        if (entity instanceof PlayerEntity player) {
-            Hand hand = player.getActiveHand();
+        if (entity instanceof Player player) {
+            InteractionHand hand = player.getUsedItemHand();
             return hand != null && player.getStackInHand(hand) == stack;
         }
         return false;

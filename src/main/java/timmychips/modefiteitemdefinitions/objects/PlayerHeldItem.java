@@ -1,6 +1,6 @@
 package timmychips.modefiteitemdefinitions.objects;
 
-import net.minecraft.item.ItemStack;
+import net.minecraft.world.item.ItemStack;
 
 public class PlayerHeldItem {
     public final ItemStack lastItem;

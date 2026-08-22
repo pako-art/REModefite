@@ -1,9 +1,9 @@
 package timmychips.modefiteitemdefinitions.property.resolver.condition;
 
 import com.mojang.logging.LogUtils;
-import net.minecraft.component.DataComponentTypes;
-import net.minecraft.entity.LivingEntity;
-import net.minecraft.item.ItemStack;
+import net.minecraft.core.component.DataComponents;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.item.ItemStack;
 import org.slf4j.Logger;
 import timmychips.modefiteitemdefinitions.property.handler.ConditionPropertyHandler;
 import timmychips.modefiteitemdefinitions.property.resolver.ResolveRecursive;
@@ -25,7 +25,7 @@ public class CustomModelDataBool implements ConditionPropertyHandler {
         if (WARNED_MODELS.add(key)) LOGGER.warn("Unable to read 'custom_model_data' for type: 'minecraft:condition' since component is an integer in this version. Defaulting to be true if component is present on item.");
 
         // Will still check if custom_model_data component is there
-        var custom_model_data = stack.get(DataComponentTypes.CUSTOM_MODEL_DATA);
+        var custom_model_data = stack.get(DataComponents.CUSTOM_MODEL_DATA);
         return custom_model_data != null;
     }
 }

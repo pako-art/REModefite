@@ -1,7 +1,7 @@
 package timmychips.modefiteitemdefinitions.property.type;
 
 import com.mojang.serialization.Codec;
-import net.minecraft.util.Identifier;
+import net.minecraft.resources.ResourceLocation;
 import timmychips.modefiteitemdefinitions.ClientInitializer;
 import timmychips.modefiteitemdefinitions.property.helper.DefinitionIdMapper;
 import timmychips.modefiteitemdefinitions.property.type.codec.*;
@@ -13,7 +13,7 @@ import java.util.Set;
 
 public class ItemModelTypes {
     public static final DefinitionIdMapper ID_MAPPER = new DefinitionIdMapper();
-    public static final Codec<ItemModelDefinition> CODEC = Codec.lazyInitialized(() -> ID_MAPPER.getCodec(Identifier.CODEC));
+    public static final Codec<ItemModelDefinition> CODEC = Codec.lazyInitialized(() -> ID_MAPPER.getCodec(ResourceLocation.CODEC));
 
     static {
         // Place all items model types into mapper to register the codec types
@@ -29,12 +29,12 @@ public class ItemModelTypes {
      * Class that handles registering item identifier to definition codec
      */
     public static class Registry {
-        private static final Map<Identifier, ItemModelDefinition> definitions = new HashMap<>();
-        private static final Map<Identifier, ItemModelRootDefinition> rootDefinitions = new HashMap<>();
+        private static final Map<ResourceLocation, ItemModelDefinition> definitions = new HashMap<>();
+        private static final Map<ResourceLocation, ItemModelRootDefinition> rootDefinitions = new HashMap<>();
 
-        public static final Set<Identifier> INVALID_MODEL_TYPES = new HashSet<>();
+        public static final Set<ResourceLocation> INVALID_MODEL_TYPES = new HashSet<>();
 
-        public static void putRoot(Identifier id, ItemModelRootDefinition root) {
+        public static void putRoot(ResourceLocation id, ItemModelRootDefinition root) {
             if (root.model() != null && validateType(id, root.model())) {
                 definitions.put(id, root.model()); // Put the id of the item and the ItemModelDefinition into Map
                 rootDefinitions.put(id, root);
@@ -42,7 +42,7 @@ public class ItemModelTypes {
         }
 
         // For retrieving the item's root json fields (get_animation_swap, etc.)
-        public static ItemModelRootDefinition getRoot(Identifier id) {
+        public static ItemModelRootDefinition getRoot(ResourceLocation id) {
             return rootDefinitions.get(id);
         }
 
@@ -52,7 +52,7 @@ public class ItemModelTypes {
          * @param definition The item model definition object associated with the item to verify
          * @return True if the definition's actual type matches what it's expecting
          */
-        public static boolean validateType(Identifier id, ItemModelDefinition definition) {
+        public static boolean validateType(ResourceLocation id, ItemModelDefinition definition) {
             if (!definition.type().equals(definition.expectedType())) {
                 INVALID_MODEL_TYPES.add(id);
                 ClientInitializer.LOGGER.error("Couldn't parse item '{}': Unknown item model type id: {}", id, definition.type());
@@ -61,11 +61,11 @@ public class ItemModelTypes {
             return true;
         }
 
-        public static ItemModelDefinition get(Identifier id) {
+        public static ItemModelDefinition get(ResourceLocation id) {
             return definitions.get(id);
         }
 
-        public static boolean hasDefinition(Identifier id) {
+        public static boolean hasDefinition(ResourceLocation id) {
             return definitions.containsKey(id);
         }
 
@@ -74,8 +74,8 @@ public class ItemModelTypes {
             definitions.clear();
         }
 
-        public static Set<Identifier> getAllModelDependencies() {
-            Set<Identifier> dependencies = new HashSet<>();
+        public static Set<ResourceLocation> getAllModelDependencies() {
+            Set<ResourceLocation> dependencies = new HashSet<>();
             for (ItemModelDefinition definition : definitions.values()) {
                 collectModelsFromDefinition(definition, dependencies);
             }
@@ -87,7 +87,7 @@ public class ItemModelTypes {
          * @param def The model definition to collect models from
          * @param out The set of item identifiers to load models for
          */
-        private static void collectModelsFromDefinition(ItemModelDefinition def, Set<Identifier> out) {
+        private static void collectModelsFromDefinition(ItemModelDefinition def, Set<ResourceLocation> out) {
             if (def instanceof ModelDefinition model) {
                 out.add(model.model());
 

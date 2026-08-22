@@ -1,17 +1,17 @@
 package timmychips.modefiteitemdefinitions.property.resolver;
 
-import net.minecraft.client.render.model.json.ModelTransformationMode;
-import net.minecraft.entity.LivingEntity;
-import net.minecraft.item.ItemStack;
-import net.minecraft.util.Identifier;
+import net.minecraft.world.item.ItemDisplayContext;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.resources.ResourceLocation;
 import timmychips.modefiteitemdefinitions.property.registry.SelectPropertyRegistry;
 import timmychips.modefiteitemdefinitions.property.type.codec.SelectDefinition;
 
 public class SelectValueResolver {
 
     public static String evaluate(
-            Identifier property,
-            ModelTransformationMode renderMode,
+            ResourceLocation property,
+            ItemDisplayContext renderMode,
             SelectDefinition.Definition def,
             ItemStack stack,
             LivingEntity entity) {

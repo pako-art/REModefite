@@ -1,10 +1,10 @@
 package timmychips.modefiteitemdefinitions.property.resolver.rangeentry;
 
 import com.mojang.logging.LogUtils;
-import net.minecraft.component.DataComponentTypes;
-import net.minecraft.component.type.CustomModelDataComponent;
-import net.minecraft.entity.LivingEntity;
-import net.minecraft.item.ItemStack;
+import net.minecraft.core.component.DataComponents;
+import net.minecraft.world.item.component.CustomModelData;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.item.ItemStack;
 import org.slf4j.Logger;
 import timmychips.modefiteitemdefinitions.property.handler.RangePropertyHandler;
 import timmychips.modefiteitemdefinitions.property.resolver.ResolveRecursive;
@@ -23,7 +23,7 @@ public class CustomModelDataFloat implements RangePropertyHandler {
         String key = stack.getItem().toString() + "|" + "minecraft:custom_model_data";
         if (WARNED_MODELS.add(key)) LOGGER.warn("Unable to read 'custom_model_data' for type: 'minecraft:range_dispatch' since component is an integer in this version. Defaulting to use integer values.");
 
-        CustomModelDataComponent custom_model_data = stack.get(DataComponentTypes.CUSTOM_MODEL_DATA);
+        CustomModelData custom_model_data = stack.get(DataComponents.CUSTOM_MODEL_DATA);
         return custom_model_data != null ? (float) custom_model_data.value() : 0F;
     }
 }

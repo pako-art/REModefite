@@ -1,8 +1,8 @@
 package timmychips.modefiteitemdefinitions.property.registry;
 
-import net.minecraft.entity.LivingEntity;
-import net.minecraft.item.ItemStack;
-import net.minecraft.util.Identifier;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.resources.ResourceLocation;
 import timmychips.modefiteitemdefinitions.ClientInitializer;
 import timmychips.modefiteitemdefinitions.property.handler.ConditionPropertyHandler;
 import timmychips.modefiteitemdefinitions.property.resolver.condition.*;
@@ -14,33 +14,33 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class ConditionPropertyRegistry {
-    private static final Map<Identifier, ConditionPropertyHandler> HANDLERS = new HashMap<>();
+    private static final Map<ResourceLocation, ConditionPropertyHandler> HANDLERS = new HashMap<>();
     private static final String MOD_ID = ClientInitializer.MOD_ID;
 
     public static void init() {
-        register(Identifier.of("minecraft:broken"), new BrokenBool());
-        register(Identifier.of("minecraft:carried"), new CarriedBool());
-        register(Identifier.of("minecraft:component"), new ComponentBool());
-        register(Identifier.of("minecraft:custom_model_data"), new CustomModelDataBool());
-        register(Identifier.of("minecraft:damaged"), new DamagedBool());
-        register(Identifier.of("minecraft:extended_view"), new ExtendedViewBool());
-        register(Identifier.of("minecraft:fishing_rod/cast"), new FishingRodCastBool());
-        register(Identifier.of("minecraft:has_component"), new HasComponentBool());
-        register(Identifier.of("minecraft:keybind_down"), new KeybindDownBool());
-        register(Identifier.of("minecraft:selected"), new SelectedBool());
-        register(Identifier.of("minecraft:using_item"), new UsingItemBool());
-        register(Identifier.of("minecraft:view_entity"), new ViewEntityBool());
+        register(ResourceLocation.parse("minecraft:broken"), new BrokenBool());
+        register(ResourceLocation.parse("minecraft:carried"), new CarriedBool());
+        register(ResourceLocation.parse("minecraft:component"), new ComponentBool());
+        register(ResourceLocation.parse("minecraft:custom_model_data"), new CustomModelDataBool());
+        register(ResourceLocation.parse("minecraft:damaged"), new DamagedBool());
+        register(ResourceLocation.parse("minecraft:extended_view"), new ExtendedViewBool());
+        register(ResourceLocation.parse("minecraft:fishing_rod/cast"), new FishingRodCastBool());
+        register(ResourceLocation.parse("minecraft:has_component"), new HasComponentBool());
+        register(ResourceLocation.parse("minecraft:keybind_down"), new KeybindDownBool());
+        register(ResourceLocation.parse("minecraft:selected"), new SelectedBool());
+        register(ResourceLocation.parse("minecraft:using_item"), new UsingItemBool());
+        register(ResourceLocation.parse("minecraft:view_entity"), new ViewEntityBool());
 
         // Custom, modded Properties
-        register(Identifier.of(MOD_ID,"hovered_item"), new HoveredItemBool());
-        register(Identifier.of(MOD_ID,"submerged"), new SubmergedBool());
+        register(ResourceLocation.parse(MOD_ID,"hovered_item"), new HoveredItemBool());
+        register(ResourceLocation.parse(MOD_ID,"submerged"), new SubmergedBool());
     }
 
-    private static void register(Identifier id, ConditionPropertyHandler handler) {
+    private static void register(ResourceLocation id, ConditionPropertyHandler handler) {
         HANDLERS.put(id, handler);
     }
 
-    public static boolean resolve(Identifier id, ItemStack stack, LivingEntity entity, ConditionDefinition def) {
+    public static boolean resolve(ResourceLocation id, ItemStack stack, LivingEntity entity, ConditionDefinition def) {
         ConditionPropertyHandler handler = HANDLERS.get(id);
         if (handler == null) return false;
         return handler.getValue(stack, entity, def);

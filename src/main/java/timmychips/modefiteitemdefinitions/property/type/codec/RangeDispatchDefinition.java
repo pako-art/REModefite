@@ -3,7 +3,7 @@ package timmychips.modefiteitemdefinitions.property.type.codec;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
-import net.minecraft.util.Identifier;
+import net.minecraft.resources.ResourceLocation;
 import org.jetbrains.annotations.Nullable;
 import timmychips.modefiteitemdefinitions.property.resolver.rangeentry.ClockTimeFloat;
 import timmychips.modefiteitemdefinitions.property.resolver.rangeentry.CompassFloat;
@@ -15,8 +15,8 @@ import java.util.Optional;
 public final class RangeDispatchDefinition {
 
     public record Definition(
-            Identifier type,
-            Identifier property,
+            ResourceLocation type,
+            ResourceLocation property,
             List<ThresholdEntry> entries,
             @Nullable ItemModelDefinition fallback,
             @Nullable CompassFloat.CompassTarget target,
@@ -30,8 +30,8 @@ public final class RangeDispatchDefinition {
 
         public static MapCodec<Definition> codec(Codec<ItemModelDefinition> selfCodec) {
             return RecordCodecBuilder.mapCodec(instance -> instance.group(
-                    Identifier.CODEC.fieldOf("type").forGetter(Definition::type),
-                    Identifier.CODEC.fieldOf("property").forGetter(Definition::property),
+                    ResourceLocation.CODEC.fieldOf("type").forGetter(Definition::type),
+                    ResourceLocation.CODEC.fieldOf("property").forGetter(Definition::property),
                     ThresholdEntry.codec(selfCodec).listOf().fieldOf("entries").forGetter(Definition::entries),
                     selfCodec.optionalFieldOf("fallback").forGetter(range -> Optional.ofNullable(range.fallback)),
                     CompassFloat.CompassTarget.CODEC.optionalFieldOf("target").forGetter(range -> Optional.ofNullable(range.target)),
@@ -54,7 +54,7 @@ public final class RangeDispatchDefinition {
             ));
         }
 
-        public static final Identifier TYPE = Identifier.of("minecraft:range_dispatch");
+        public static final ResourceLocation TYPE = ResourceLocation.parse("minecraft:range_dispatch");
 
         @Override
         public MapCodec<? extends ItemModelDefinition> getCodec() {
@@ -62,7 +62,7 @@ public final class RangeDispatchDefinition {
         }
 
         @Override
-        public Identifier expectedType() {
+        public ResourceLocation expectedType() {
             return TYPE;
         }
     }

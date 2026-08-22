@@ -1,8 +1,8 @@
 package timmychips.modefiteitemdefinitions.property.resolver;
 
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.resource.ResourceManager;
-import net.minecraft.util.Identifier;
+import net.minecraft.client.Minecraft;
+import net.minecraft.server.packs.resources.ResourceManager;
+import net.minecraft.resources.ResourceLocation;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -13,7 +13,7 @@ import java.util.regex.Pattern;
  * Redirects a legacy armor texture lookup to a pack's 1.21.2+ equipment texture, if it ships one.
  */
 public class ArmorTextureRedirect {
-    private static final Map<Identifier, Identifier> CACHE = new ConcurrentHashMap<>();
+    private static final Map<ResourceLocation, ResourceLocation> CACHE = new ConcurrentHashMap<>();
     // Vanilla material ids that changed for the new equipment asset format; others kept their legacy id
     private static final Map<String, String> RENAMED_ASSETS = Map.of(
             "turtle", "turtle_scute",
@@ -25,11 +25,11 @@ public class ArmorTextureRedirect {
         CACHE.clear();
     }
 
-    public static Identifier redirect(Identifier legacy) {
+    public static ResourceLocation redirect(ResourceLocation legacy) {
         return CACHE.computeIfAbsent(legacy, ArmorTextureRedirect::compute);
     }
 
-    private static Identifier compute(Identifier legacy) {
+    private static ResourceLocation compute(ResourceLocation legacy) {
         Matcher matcher = LEGACY_PATTERN.matcher(legacy.getPath());
         if (!matcher.matches()) return legacy;
 
@@ -37,10 +37,10 @@ public class ArmorTextureRedirect {
         String folder = matcher.group(2).equals("2") ? "humanoid_leggings" : "humanoid";
         boolean overlay = matcher.group(3) != null;
 
-        Identifier candidate = Identifier.of(legacy.getNamespace(),
+        ResourceLocation candidate = ResourceLocation.parse(legacy.getNamespace(),
                 "textures/entity/equipment/" + folder + "/" + assetName + (overlay ? "_overlay" : "") + ".png");
 
-        ResourceManager manager = MinecraftClient.getInstance().getResourceManager();
+        ResourceManager manager = Minecraft.getInstance().getResourceManager();
         return manager.getResource(candidate).isPresent() ? candidate : legacy;
     }
 }

@@ -4,20 +4,20 @@ import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;
-import net.minecraft.util.Identifier;
+import net.minecraft.resources.ResourceLocation;
 import timmychips.modefiteitemdefinitions.property.type.codec.ItemModelDefinition;
 
 import java.util.Objects;
 
 public class DefinitionIdMapper {
-    private final BiMap<Identifier, MapCodec<? extends ItemModelDefinition>> idToCodec = HashBiMap.create();
+    private final BiMap<ResourceLocation, MapCodec<? extends ItemModelDefinition>> idToCodec = HashBiMap.create();
 
-    public Codec<ItemModelDefinition> getCodec(Codec<Identifier> idCodec) {
+    public Codec<ItemModelDefinition> getCodec(Codec<ResourceLocation> idCodec) {
         return idCodec.dispatch(
                 // from definition -> id
                 def -> {
                     MapCodec<? extends ItemModelDefinition> codec = def.getCodec();
-                    Identifier id = idToCodec.inverse().get(codec);
+                    ResourceLocation id = idToCodec.inverse().get(codec);
                     if (id == null) {
                         throw new IllegalStateException("Unknown definition codec: " + codec);
                     }
@@ -34,7 +34,7 @@ public class DefinitionIdMapper {
         );
     }
 
-    public DefinitionIdMapper put(Identifier id, MapCodec<? extends ItemModelDefinition> value) {
+    public DefinitionIdMapper put(ResourceLocation id, MapCodec<? extends ItemModelDefinition> value) {
         Objects.requireNonNull(value, () -> "Value for " + id + " is null");
         idToCodec.put(id, value);
         return this;

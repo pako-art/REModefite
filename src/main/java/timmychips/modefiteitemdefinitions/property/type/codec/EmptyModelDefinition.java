@@ -2,14 +2,14 @@ package timmychips.modefiteitemdefinitions.property.type.codec;
 
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
-import net.minecraft.util.Identifier;
+import net.minecraft.resources.ResourceLocation;
 
-public record EmptyModelDefinition(Identifier type) implements ItemModelDefinition {
+public record EmptyModelDefinition(ResourceLocation type) implements ItemModelDefinition {
     public static final MapCodec<EmptyModelDefinition> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
-            Identifier.CODEC.fieldOf("type").forGetter(EmptyModelDefinition::type)
+            ResourceLocation.CODEC.fieldOf("type").forGetter(EmptyModelDefinition::type)
     ).apply(instance, EmptyModelDefinition::new));
 
-    public static final Identifier TYPE = Identifier.of("minecraft:empty");
+    public static final ResourceLocation TYPE = ResourceLocation.parse("minecraft:empty");
 
     @Override
     public MapCodec<? extends ItemModelDefinition> getCodec() {
@@ -17,7 +17,7 @@ public record EmptyModelDefinition(Identifier type) implements ItemModelDefiniti
     }
 
     @Override
-    public Identifier expectedType() {
+    public ResourceLocation expectedType() {
         return TYPE;
     }
 }

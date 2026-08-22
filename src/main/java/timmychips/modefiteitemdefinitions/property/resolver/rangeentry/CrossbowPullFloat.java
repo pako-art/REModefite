@@ -1,8 +1,8 @@
 package timmychips.modefiteitemdefinitions.property.resolver.rangeentry;
 
-import net.minecraft.entity.LivingEntity;
-import net.minecraft.item.CrossbowItem;
-import net.minecraft.item.ItemStack;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.item.CrossbowItem;
+import net.minecraft.world.item.ItemStack;
 import timmychips.modefiteitemdefinitions.property.handler.RangePropertyHandler;
 import timmychips.modefiteitemdefinitions.property.type.codec.RangeDispatchDefinition;
 
@@ -15,8 +15,8 @@ public class CrossbowPullFloat implements RangePropertyHandler {
         else {
             int pull_time = CrossbowItem.getPullTime(stack, user);
             return (float) UseDurationFloat.getTicksUsed(stack, user) / pull_time;
-//            return (float) (stack.getMaxUseTime(user) - user.getItemUseTimeLeft()) / pull_time;
+//            return (float) (stack.getMaxUseTime(user) - user.getUseItemRemainingTicks()) / pull_time;
         }
-//        return CrossbowItem.isCharged(stack) ? 0.0F : (float)(stack.getMaxUseTime(user) - user.getItemUseTimeLeft()) / (float)CrossbowItem.getPullTime(stack, user);
+//        return CrossbowItem.isCharged(stack) ? 0.0F : (float)(stack.getMaxUseTime(user) - user.getUseItemRemainingTicks()) / (float)CrossbowItem.getPullTime(stack, user);
     }
 }

@@ -2,12 +2,12 @@ package timmychips.modefiteitemdefinitions.property.resolver;
 
 import com.mojang.logging.LogUtils;
 import net.fabricmc.fabric.api.client.model.loading.v1.FabricBakedModelManager;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.render.model.BakedModel;
-import net.minecraft.client.render.model.json.ModelTransformationMode;
-import net.minecraft.entity.LivingEntity;
-import net.minecraft.item.ItemStack;
-import net.minecraft.util.Identifier;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.resources.model.BakedModel;
+import net.minecraft.world.item.ItemDisplayContext;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.resources.ResourceLocation;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import timmychips.modefiteitemdefinitions.bakedmodels.CompositeItemModel;
@@ -27,20 +27,20 @@ public class ResolveRecursive {
 
     /** Lazily fetch the baked model manager */
     private static FabricBakedModelManager getBakedModelManager() {
-        return MinecraftClient.getInstance().getBakedModelManager();
+        return Minecraft.getInstance().getModelManager();
     }
 
     /** Fetch missing model safely */
     public static BakedModel getMissingModel() {
-        return MinecraftClient.getInstance().getBakedModelManager().getMissingModel();
+        return Minecraft.getInstance().getModelManager().getMissingModel();
     }
 
     /**
      * Resolves a definition recursively into a baked model.
      */
-    public static Optional<BakedModel> resolve(ItemModelDefinition def, ModelTransformationMode renderMode, ItemStack stack, LivingEntity entity) {
+    public static Optional<BakedModel> resolve(ItemModelDefinition def, ItemDisplayContext renderMode, ItemStack stack, LivingEntity entity) {
         if (def == null) return Optional.empty();
-        if (renderMode == null) renderMode = ModelTransformationMode.GUI;
+        if (renderMode == null) renderMode = ItemDisplayContext.GUI;
 
         FabricBakedModelManager manager = getBakedModelManager();
 
@@ -95,7 +95,7 @@ public class ResolveRecursive {
             case RangeDispatchDefinition.Definition range -> {
                 float value = RangeDispatchValueResolver.evaluate(range.property(), range.scale(), stack, entity, range);
 
-                ModelTransformationMode finalRenderMode = renderMode;
+                ItemDisplayContext finalRenderMode = renderMode;
                 return range.entries().stream()
                         .sorted((a, b) -> Float.compare(b.threshold(), a.threshold())) // highest threshold first
                         .filter(entry -> value >= entry.threshold())
@@ -113,7 +113,7 @@ public class ResolveRecursive {
     }
 
     /** Warn once and return missing model if no match found */
-    private static Optional<BakedModel> missingFallbackModel(ItemStack stack, Identifier property, @Nullable Identifier type) {
+    private static Optional<BakedModel> missingFallbackModel(ItemStack stack, ResourceLocation property, @Nullable ResourceLocation type) {
         /// For properties of condition, select, range_dispatch types
         if (property != null) {
             String key = stack.getItem().toString() + "|" + property;

@@ -1,7 +1,7 @@
 package timmychips.modefiteitemdefinitions.property.resolver.rangeentry;
 
-import net.minecraft.entity.LivingEntity;
-import net.minecraft.item.ItemStack;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.item.ItemStack;
 import timmychips.modefiteitemdefinitions.property.handler.RangePropertyHandler;
 import timmychips.modefiteitemdefinitions.property.type.codec.RangeDispatchDefinition;
 
@@ -10,7 +10,7 @@ public class CountFloat implements RangePropertyHandler {
     @Override
     public float getValue(ItemStack stack, LivingEntity entity, RangeDispatchDefinition.Definition definition) {
         int count = stack.getCount();
-        int maxStack = stack.getMaxCount();
+        int maxStack = stack.getMaxStackSize();
         boolean should_normalize = Boolean.TRUE.equals(definition.countNormalize());
 
         return should_normalize ?

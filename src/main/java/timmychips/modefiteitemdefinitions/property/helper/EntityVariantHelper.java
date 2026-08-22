@@ -1,10 +1,10 @@
 package timmychips.modefiteitemdefinitions.property.helper;
 
-import net.minecraft.component.DataComponentTypes;
-import net.minecraft.component.type.NbtComponent;
-import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.NbtCompound;
-import net.minecraft.util.Identifier;
+import net.minecraft.core.component.DataComponents;
+import net.minecraft.world.item.component.CustomData;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.resources.ResourceLocation;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -16,19 +16,19 @@ public class EntityVariantHelper {
     //  https://minecraft.wiki/w/Data_component_format#Entity_variant_components
 
     /// Not components in this version, but are in 1.21.5
-    static final List<Identifier> ENTITY_VARIANTS = List.of(
-            Identifier.ofVanilla("axolotl/variant"),
-            Identifier.ofVanilla("frog/variant")
+    static final List<ResourceLocation> ENTITY_VARIANTS = List.of(
+            ResourceLocation.withDefaultNamespace("axolotl/variant"),
+            ResourceLocation.withDefaultNamespace("frog/variant")
     );
 
     // Axolotl variant names
-    static final ArrayList<Identifier> AXOLOTL_VARIANT_LIST = new ArrayList<>(
+    static final ArrayList<ResourceLocation> AXOLOTL_VARIANT_LIST = new ArrayList<>(
             Arrays.asList(
-                    Identifier.ofVanilla("lucy"),
-                    Identifier.ofVanilla("wild"),
-                    Identifier.ofVanilla("gold"),
-                    Identifier.ofVanilla("cyan"),
-                    Identifier.ofVanilla("blue")
+                    ResourceLocation.withDefaultNamespace("lucy"),
+                    ResourceLocation.withDefaultNamespace("wild"),
+                    ResourceLocation.withDefaultNamespace("gold"),
+                    ResourceLocation.withDefaultNamespace("cyan"),
+                    ResourceLocation.withDefaultNamespace("blue")
             )
     );
 
@@ -38,7 +38,7 @@ public class EntityVariantHelper {
      * @param component Component identifier to check if it's a type of entity variant
      * @return If component is in list
      */
-    public static boolean isEntityVariant(Identifier component) {
+    public static boolean isEntityVariant(ResourceLocation component) {
         return ENTITY_VARIANTS.contains(component);
     }
 
@@ -68,10 +68,10 @@ public class EntityVariantHelper {
      */
     public static String getBucketEntityVariant(ItemStack stack) {
 
-        NbtComponent bucketData = stack.get(DataComponentTypes.BUCKET_ENTITY_DATA);
+        CustomData bucketData = stack.get(DataComponents.BUCKET_ENTITY_DATA);
 
         if (bucketData != null) {
-            NbtCompound root = bucketData.copyNbt(); // copy nbt data for safe reading
+            CompoundTag root = bucketData.copyTag(); // copy nbt data for safe reading
 
             // Axolotl Variants
             if (root.contains("Variant", 3)) { // Get value from axolotl variant string/index

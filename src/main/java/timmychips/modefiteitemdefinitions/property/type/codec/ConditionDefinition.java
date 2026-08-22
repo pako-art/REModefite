@@ -5,8 +5,8 @@ import com.mojang.serialization.Codec;
 import com.mojang.serialization.DataResult;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
-import net.minecraft.client.option.KeyBinding;
-import net.minecraft.util.Identifier;
+import net.minecraft.client.KeyMapping;
+import net.minecraft.resources.ResourceLocation;
 import org.jetbrains.annotations.Nullable;
 import timmychips.modefiteitemdefinitions.property.helper.JsonElementHelper;
 import timmychips.modefiteitemdefinitions.mixin.client.KeyBindingAccessor;
@@ -16,38 +16,38 @@ import java.util.Optional;
 
 
 public record ConditionDefinition(
-        Identifier type,
-        Identifier property,
+        ResourceLocation type,
+        ResourceLocation property,
         @Nullable String predicate,       // for property "component"
         @Nullable JsonElement value,      //
         @Nullable String component,       // for property "has_component"
         Boolean ignore_default, //
-        KeyBinding keybind,
-        @Nullable Identifier submergedFluid,
+        KeyMapping keybind,
+        @Nullable ResourceLocation submergedFluid,
         ItemModelDefinition on_true,
         ItemModelDefinition on_false
 
 ) implements ItemModelDefinition {
 
-    public static final Codec<KeyBinding> KEYBIND_CODEC;
+    public static final Codec<KeyMapping> KEYBIND_CODEC;
 
     static {
         KEYBIND_CODEC = Codec.STRING.comapFlatMap((id) -> {                      // Keybind string
-            KeyBinding keyBinding = KeyBindingAccessor.getKeyIds().get(id);
+            KeyMapping keyBinding = KeyBindingAccessor.getKeyIds().get(id);
             return keyBinding != null ? DataResult.success(keyBinding) : DataResult.error(() -> "Invalid keybind: " + id);
-        }, KeyBinding::getTranslationKey);
+        }, KeyMapping::getTranslationKey);
     }
 
     public static MapCodec<ConditionDefinition> codec(Codec<ItemModelDefinition> selfCodec) {
         return RecordCodecBuilder.mapCodec(instance -> instance.group(
-                Identifier.CODEC.fieldOf("type").forGetter(ConditionDefinition::type),
-                Identifier.CODEC.fieldOf("property").forGetter(ConditionDefinition::property),
+                ResourceLocation.CODEC.fieldOf("type").forGetter(ConditionDefinition::type),
+                ResourceLocation.CODEC.fieldOf("property").forGetter(ConditionDefinition::property),
                 Codec.STRING.optionalFieldOf("predicate").forGetter(cd -> Optional.ofNullable(cd.predicate())),
                 JsonElementHelper.JSON_ELEMENT_CODEC.optionalFieldOf("value").forGetter(cd -> Optional.ofNullable(cd.value())),
                 Codec.STRING.optionalFieldOf("component").forGetter(cd -> Optional.ofNullable(cd.component())),
                 Codec.BOOL.optionalFieldOf("ignore_default").forGetter(cd -> Optional.ofNullable(cd.ignore_default())),
                 KEYBIND_CODEC.optionalFieldOf("keybind").forGetter(cd -> Optional.ofNullable(cd.keybind())),
-                Identifier.CODEC.optionalFieldOf("fluid").forGetter(cd -> Optional.ofNullable(cd.submergedFluid)),
+                ResourceLocation.CODEC.optionalFieldOf("fluid").forGetter(cd -> Optional.ofNullable(cd.submergedFluid)),
                 selfCodec.fieldOf("on_true").forGetter(ConditionDefinition::on_true),
                 selfCodec.fieldOf("on_false").forGetter(ConditionDefinition::on_false)
 
@@ -57,12 +57,12 @@ public record ConditionDefinition(
                         optPredicate.orElse(null), optValue.orElse(null),
                         optComponent.orElse(null), optIgnoreDef.orElse(false),
                         optKeybind.orElse(null),
-                        optSubmergedFluid.orElse(Identifier.of("minecraft:water")),
+                        optSubmergedFluid.orElse(ResourceLocation.parse("minecraft:water")),
                         onTrue, onFalse)
         ));
     }
 
-    public static final Identifier TYPE = Identifier.of("minecraft:condition");
+    public static final ResourceLocation TYPE = ResourceLocation.parse("minecraft:condition");
 
     @Override
     public MapCodec<? extends ItemModelDefinition> getCodec() {
@@ -70,7 +70,7 @@ public record ConditionDefinition(
     }
 
     @Override
-    public Identifier expectedType() {
+    public ResourceLocation expectedType() {
         return TYPE;
     }
 }

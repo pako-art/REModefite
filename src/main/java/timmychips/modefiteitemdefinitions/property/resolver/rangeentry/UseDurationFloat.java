@@ -1,7 +1,7 @@
 package timmychips.modefiteitemdefinitions.property.resolver.rangeentry;
 
-import net.minecraft.entity.LivingEntity;
-import net.minecraft.item.ItemStack;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.item.ItemStack;
 import timmychips.modefiteitemdefinitions.property.handler.RangePropertyHandler;
 import timmychips.modefiteitemdefinitions.property.type.codec.RangeDispatchDefinition;
 
@@ -11,11 +11,11 @@ public class UseDurationFloat implements RangePropertyHandler {
         boolean use_remaining = Boolean.TRUE.equals(definition.useRemaining());
 
         if (entity == null) return 0F;
-        else if (entity.getActiveItem() != stack) return 0F;
-        else return use_remaining ? entity.getItemUseTimeLeft() : getTicksUsed(stack, entity);
+        else if (entity.getUseItem() != stack) return 0F;
+        else return use_remaining ? entity.getUseItemRemainingTicks() : getTicksUsed(stack, entity);
     }
 
     public static int getTicksUsed(ItemStack stack, LivingEntity user) {
-        return stack.getMaxUseTime(user) - user.getItemUseTimeLeft();
+        return stack.getMaxUseTime(user) - user.getUseItemRemainingTicks();
     }
 }

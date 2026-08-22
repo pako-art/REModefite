@@ -1,14 +1,14 @@
 package timmychips.modefiteitemdefinitions.property.resolver;
 
-import net.minecraft.entity.LivingEntity;
-import net.minecraft.item.ItemStack;
-import net.minecraft.util.Identifier;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.resources.ResourceLocation;
 import timmychips.modefiteitemdefinitions.property.registry.RangePropertyRegistry;
 import timmychips.modefiteitemdefinitions.property.type.codec.RangeDispatchDefinition;
 
 public class RangeDispatchValueResolver {
     public static float evaluate(
-            Identifier property, Float scale,
+            ResourceLocation property, Float scale,
             ItemStack stack, LivingEntity entity,
             RangeDispatchDefinition.Definition def) {
 

@@ -1,12 +1,12 @@
 package timmychips.modefiteitemdefinitions.property.resolver.condition;
 
 import com.mojang.logging.LogUtils;
-import net.minecraft.component.ComponentChanges;
-import net.minecraft.component.ComponentType;
-import net.minecraft.entity.LivingEntity;
-import net.minecraft.item.ItemStack;
-import net.minecraft.registry.Registries;
-import net.minecraft.util.Identifier;
+import net.minecraft.core.component.DataComponentPatch;
+import net.minecraft.core.component.DataComponentType;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.resources.ResourceLocation;
 import org.slf4j.Logger;
 import timmychips.modefiteitemdefinitions.property.handler.ConditionPropertyHandler;
 import timmychips.modefiteitemdefinitions.property.resolver.ResolveRecursive;
@@ -27,16 +27,16 @@ public class HasComponentBool implements ConditionPropertyHandler {
 
         if (component == null) return false;
 
-        // Parse string to Identifier id
-        Identifier componentId = Identifier.tryParse(component);
+        // Parse string to ResourceLocation id
+        ResourceLocation componentId = ResourceLocation.tryParse(component);
         if (componentId == null) {
             String key = stack.getItem().toString() + "|" + "minecraft:has_component";
             if (WARNED_MODELS.add(key)) LOGGER.warn("Invalid component predicate ID '{}'", component);
             return false;
         }
 
-        // Get component type from Identifier
-        ComponentType<?> componentType = Registries.DATA_COMPONENT_TYPE.get(componentId);
+        // Get component type from ResourceLocation
+        DataComponentType<?> componentType = BuiltInRegistries.DATA_COMPONENT_TYPE.get(componentId);
         if (componentType == null) {
             String key = stack.getItem().toString() + "|" + "minecraft:has_component";
             if (WARNED_MODELS.add(key)) LOGGER.warn("Unknown component predicate componentType '{}'", componentId);
@@ -53,9 +53,9 @@ public class HasComponentBool implements ConditionPropertyHandler {
     }
 
     // Boolean if item component has had component changes
-    private static Boolean hasChanged(ItemStack stack, ComponentType<?> componentType) {
-        ComponentChanges changes = stack.getComponentChanges();
-        return changes.entrySet().stream()                                  // changes.entrySet returns map<ComponentType, Optional<?>>
-                .anyMatch(entry -> entry.getKey().equals(componentType));   // stream and do anyMatch to check the key (ComponentType) matches to our componentType var
+    private static Boolean hasChanged(ItemStack stack, DataComponentType<?> componentType) {
+        DataComponentPatch changes = stack.getComponentsPatch();
+        return changes.entrySet().stream()                                  // changes.entrySet returns map<DataComponentType, Optional<?>>
+                .anyMatch(entry -> entry.getKey().equals(componentType));   // stream and do anyMatch to check the key (DataComponentType) matches to our componentType var
     }
 }

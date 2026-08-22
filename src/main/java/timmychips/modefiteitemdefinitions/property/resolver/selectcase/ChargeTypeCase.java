@@ -1,12 +1,12 @@
 package timmychips.modefiteitemdefinitions.property.resolver.selectcase;
 
-import net.minecraft.client.render.model.json.ModelTransformationMode;
-import net.minecraft.component.DataComponentTypes;
-import net.minecraft.component.type.ChargedProjectilesComponent;
-import net.minecraft.entity.LivingEntity;
-import net.minecraft.item.Item;
-import net.minecraft.item.ItemStack;
-import net.minecraft.item.Items;
+import net.minecraft.world.item.ItemDisplayContext;
+import net.minecraft.core.component.DataComponents;
+import net.minecraft.world.item.component.ChargedProjectiles;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
 import timmychips.modefiteitemdefinitions.property.handler.SelectPropertyHandler;
 import timmychips.modefiteitemdefinitions.property.type.codec.SelectDefinition;
 
@@ -28,16 +28,16 @@ import timmychips.modefiteitemdefinitions.property.type.codec.SelectDefinition;
  */
 public class ChargeTypeCase implements SelectPropertyHandler {
     @Override
-    public String getValue(ItemStack stack, LivingEntity entity, ModelTransformationMode mode, SelectDefinition.Definition definition) {
+    public String getValue(ItemStack stack, LivingEntity entity, ItemDisplayContext mode, SelectDefinition.Definition definition) {
         // Safely extract the first charged projectile type
-        ChargedProjectilesComponent charged = stack.get(DataComponentTypes.CHARGED_PROJECTILES);
+        ChargedProjectiles charged = stack.get(DataComponents.CHARGED_PROJECTILES);
 
         // Custom fields
         boolean ignore_default = definition.chargeIgnoreDefault(); // Ignores default behavior
         boolean ignore_unknown = definition.chargeIgnoreUnknown(); // Will use projectile item id as return string value instead of "unknown"
 
         if (charged != null && !charged.isEmpty()) {
-            for (ItemStack projectile : charged.getProjectiles()) {
+            for (ItemStack projectile : charged.getItems()) {
                 Item item = projectile.getItem();
 
                 if (item == Items.ARROW) return "arrow";

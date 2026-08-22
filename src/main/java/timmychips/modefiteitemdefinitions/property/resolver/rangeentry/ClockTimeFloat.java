@@ -1,20 +1,18 @@
 package timmychips.modefiteitemdefinitions.property.resolver.rangeentry;
 
 import com.mojang.serialization.Codec;
-import net.fabricmc.api.EnvType;
-import net.fabricmc.api.Environment;
-import net.minecraft.client.world.ClientWorld;
-import net.minecraft.entity.Entity;
-import net.minecraft.entity.LivingEntity;
-import net.minecraft.item.ItemStack;
-import net.minecraft.util.StringIdentifiable;
-import net.minecraft.util.math.MathHelper;
-import net.minecraft.util.math.random.Random;
+import net.minecraft.client.multiplayer.ClientLevel;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.util.StringRepresentable;
+import net.minecraft.util.Mth;
+import net.minecraft.util.RandomSource;
 import timmychips.modefiteitemdefinitions.property.handler.RangePropertyHandler;
 import timmychips.modefiteitemdefinitions.property.type.codec.RangeDispatchDefinition;
 
 public class ClockTimeFloat implements RangePropertyHandler {
-    private final Random random = Random.create();
+    private final RandomSource random = RandomSource.create();
     private final ClockAngler.Angler wobbleAngler;
     private final ClockAngler.Angler instantAngler;
 
@@ -27,7 +25,7 @@ public class ClockTimeFloat implements RangePropertyHandler {
     @Override
     public float getValue(ItemStack stack, LivingEntity entity, RangeDispatchDefinition.Definition definition) {
         if (entity == null) return 0F;
-        if (!(entity.getWorld() instanceof ClientWorld clientWorld)) return 0f;
+        if (!(entity.level() instanceof ClientLevel clientWorld)) return 0f;
 
         // Specified source
         ClockSource source = definition.clockSource();
@@ -42,7 +40,7 @@ public class ClockTimeFloat implements RangePropertyHandler {
         if (source == null) return 0F;
 
         float targetAngle = source.getRandomAngle(clientWorld, stack, entity, this.random);
-        long time = clientWorld.getTime();
+        long time = clientWorld.getGameTime();
 
         if (angler.shouldUpdate(time)) {
             angler.update(time, targetAngle);
@@ -50,35 +48,34 @@ public class ClockTimeFloat implements RangePropertyHandler {
         return angler.getAngle();
     }
 
-    public enum ClockSource implements StringIdentifiable {
+    public enum ClockSource implements StringRepresentable {
         DAYTIME("daytime") {
-            public float getRandomAngle(ClientWorld clientWorld, ItemStack stack, Entity user, Random random) {
-                return clientWorld.getSkyAngle(1.0F);
+            public float getRandomAngle(ClientLevel clientWorld, ItemStack stack, Entity user, RandomSource random) {
+                return clientWorld.getSunAngle(1.0F);
             }
         },
         MOON_PHASE("moon_phase") {
-            public float getRandomAngle(ClientWorld clientWorld, ItemStack stack, Entity user, Random random) {
+            public float getRandomAngle(ClientLevel clientWorld, ItemStack stack, Entity user, RandomSource random) {
                 return (float) clientWorld.getMoonPhase() / 8F;
             }
         },
         RANDOM("random") {
-            public float getRandomAngle(ClientWorld clientWorld, ItemStack stack, Entity user, Random random) {
+            public float getRandomAngle(ClientLevel clientWorld, ItemStack stack, Entity user, RandomSource random) {
 
                 return random.nextFloat();
             }
         };
 
-        public static final Codec<ClockSource> CODEC = StringIdentifiable.createCodec(ClockSource::values);
+        public static final Codec<ClockSource> CODEC = StringRepresentable.fromEnum(ClockSource::values);
         private final String name;
 
         ClockSource(String name) { this.name = name; }
         public String asString() { return name; }
-        abstract float getRandomAngle(ClientWorld world, ItemStack stack, Entity user, Random random);
+        abstract float getRandomAngle(ClientLevel world, ItemStack stack, Entity user, RandomSource random);
     }
 }
 
 
-@Environment(EnvType.CLIENT)
 class ClockAngler {
 
     public interface Angler {
@@ -107,10 +104,10 @@ class ClockAngler {
 
             public void update(long time, float target) {
                 this.lastUpdateTime = time;
-                float f = MathHelper.floorMod(target - this.angle + 0.5F, 1.0F) - 0.5F;
+                float f = Mth.positiveModulo(target - this.angle + 0.5F, 1.0F) - 0.5F;
                 this.speed += f * 0.1F;
                 this.speed *= speedMultiplier;
-                this.angle = MathHelper.floorMod(this.angle + this.speed, 1.0F);
+                this.angle = Mth.positiveModulo(this.angle + this.speed, 1.0F);
             }
         };
     }

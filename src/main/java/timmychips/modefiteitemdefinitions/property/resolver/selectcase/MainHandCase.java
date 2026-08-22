@@ -1,10 +1,10 @@
 package timmychips.modefiteitemdefinitions.property.resolver.selectcase;
 
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.render.model.json.ModelTransformationMode;
-import net.minecraft.entity.LivingEntity;
-import net.minecraft.item.ItemStack;
-import net.minecraft.util.Arm;
+import net.minecraft.client.Minecraft;
+import net.minecraft.world.item.ItemDisplayContext;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.entity.HumanoidArm;
 import timmychips.modefiteitemdefinitions.property.handler.SelectPropertyHandler;
 import timmychips.modefiteitemdefinitions.property.type.codec.SelectDefinition;
 
@@ -14,8 +14,8 @@ import timmychips.modefiteitemdefinitions.property.type.codec.SelectDefinition;
  */
 public class MainHandCase implements SelectPropertyHandler {
     @Override
-    public String getValue(ItemStack stack, LivingEntity entity, ModelTransformationMode mode, SelectDefinition.Definition definition) {
-        Arm mainArm = MinecraftClient.getInstance().options.getSyncedOptions().mainArm();
+    public String getValue(ItemStack stack, LivingEntity entity, ItemDisplayContext mode, SelectDefinition.Definition definition) {
+        HumanoidArm mainArm = Minecraft.getInstance().options.getSyncedOptions().mainArm();
         if (entity != null) mainArm = entity.getMainArm();
 
         return mainArm.toString().toLowerCase();
