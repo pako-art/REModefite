@@ -47,9 +47,13 @@ public abstract class HeldItemMixin {
             at = @At("HEAD"),
             cancellable = true)
     private void modefite$overrideGUIModel(ItemStack stack, Level world, LivingEntity entity, int seed, CallbackInfoReturnable<BakedModel> cir) {
-        BakedModel gui_model = getCustomModel(stack, entity, ItemDisplayContext.GUI);
-        if (gui_model != null) {
-            cir.setReturnValue(gui_model);
+        // getModel carries no display context, so this used to answer GUI for
+        // every caller - including the hand renderer. HandDisplayContext says
+        // which context is actually being drawn when a hand is on the path.
+        ItemDisplayContext context = timmychips.modefiteitemdefinitions.objects.HandDisplayContext.get();
+        BakedModel model = getCustomModel(stack, entity, context != null ? context : ItemDisplayContext.GUI);
+        if (model != null) {
+            cir.setReturnValue(model);
         }
     }
 
