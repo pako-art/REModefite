@@ -25,7 +25,7 @@ public abstract class HeldItemSwapMixin {
         LocalPlayer clientPlayer = Minecraft.getInstance().player;
         if (clientPlayer != null) {
             ItemStack heldItem = !clientPlayer.getMainHandItem().isEmpty() ? clientPlayer.getMainHandItem() : clientPlayer.getOffhandItem();
-            ResourceLocation heldId = BuiltInRegistries.ITEM.getId(heldItem.getItem());
+            ResourceLocation heldId = BuiltInRegistries.ITEM.getKey(heldItem.getItem());
             ItemModelRootDefinition def = ItemModelTypes.Registry.getRoot(heldId); // Get items model definition for item model
 
             if (def != null && !def.handAnimationSwap()) return 0F; // Disable hand animation swap if current held item model has hand swap set to false
@@ -39,7 +39,7 @@ public abstract class HeldItemSwapMixin {
         LocalPlayer clientPlayer = Minecraft.getInstance().player;
         if (clientPlayer != null) {
             ItemStack offhandItem = clientPlayer.getOffhandItem();
-            ResourceLocation offhandId = BuiltInRegistries.ITEM.getId(offhandItem.getItem());
+            ResourceLocation offhandId = BuiltInRegistries.ITEM.getKey(offhandItem.getItem());
             ItemModelRootDefinition def = ItemModelTypes.Registry.getRoot(offhandId); // Get items model definition for item model
 
             if (def != null && !def.handAnimationSwap()) return 0F; // Disable offhand animation swap if current held item model has hand swap set to false

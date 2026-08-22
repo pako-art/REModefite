@@ -1,7 +1,6 @@
 package timmychips.modefiteitemdefinitions.property.resolver;
 
 import com.mojang.logging.LogUtils;
-import net.fabricmc.fabric.api.client.model.loading.v1.FabricBakedModelManager;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.resources.model.BakedModel;
 import net.minecraft.world.item.ItemDisplayContext;
@@ -16,6 +15,7 @@ import timmychips.modefiteitemdefinitions.property.resolver.selectcase.Component
 import timmychips.modefiteitemdefinitions.property.type.codec.*;
 
 import java.util.Map;
+import java.util.function.Function;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -25,9 +25,22 @@ public class ResolveRecursive {
     private static final Logger LOGGER = LogUtils.getLogger();
     public static final Set<String> WARNED_MODELS = ConcurrentHashMap.newKeySet();
 
-    /** Lazily fetch the baked model manager */
-    private static FabricBakedModelManager getBakedModelManager() {
-        return Minecraft.getInstance().getModelManager();
+    /**
+     * Lookup for the standalone models this mod registers.
+     *
+     * <p>Replaces {@code FabricBakedModelManager.getModel(Identifier)}, which
+     * has no NeoForge counterpart: models added through
+     * {@code ModelEvent.RegisterAdditional} are not reachable from the vanilla
+     * {@code ModelManager}. {@code ClientInitializer} installs this at
+     * {@code ModelEvent.BakingCompleted} and replaces it on every reload.
+     *
+     * <p>Volatile because the resource-reload worker writes it and the render
+     * thread reads it.
+     */
+    private static volatile Function<ResourceLocation, BakedModel> modelLookup = id -> null;
+
+    public static void setModelLookup(Function<ResourceLocation, BakedModel> lookup) {
+        modelLookup = lookup;
     }
 
     /** Fetch missing model safely */
@@ -42,11 +55,9 @@ public class ResolveRecursive {
         if (def == null) return Optional.empty();
         if (renderMode == null) renderMode = ItemDisplayContext.GUI;
 
-        FabricBakedModelManager manager = getBakedModelManager();
-
         switch (def) {
             case ModelDefinition model -> {
-                BakedModel bakedModel = manager.getModel(model.model());
+                BakedModel bakedModel = modelLookup.apply(model.model());
                 return bakedModel == null ? Optional.empty() : Optional.of(bakedModel);
             }
             case EmptyModelDefinition emptyModelDefinition -> {

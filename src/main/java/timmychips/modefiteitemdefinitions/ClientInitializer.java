@@ -5,8 +5,11 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.mojang.logging.LogUtils;
 import com.mojang.serialization.JsonOps;
-import net.fabricmc.api.ClientModInitializer;
-import net.fabricmc.fabric.api.client.model.loading.v1.ModelLoadingPlugin;
+import net.minecraft.client.resources.model.ModelResourceLocation;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.bus.api.IEventBus;
+import net.neoforged.fml.common.Mod;
+import net.neoforged.neoforge.client.event.ModelEvent;
 import net.minecraft.client.Minecraft;
 import net.minecraft.server.packs.resources.ResourceManager;
 import net.minecraft.resources.ResourceLocation;
@@ -21,12 +24,30 @@ import timmychips.modefiteitemdefinitions.property.type.ItemModelTypes;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.Collection;
+import java.util.List;
 
-public class ClientInitializer implements ClientModInitializer {
+/**
+ * NeoForge entrypoint, replacing the Fabric {@code ClientModInitializer}.
+ *
+ * <p>Fabric drove everything from one {@code ModelLoadingPlugin} callback:
+ * parse the item definitions, then hand the model ids to
+ * {@code pluginContext.addModels}. NeoForge splits that across two events on
+ * the mod bus, and the split matters - the ids have to be declared during
+ * {@link ModelEvent.RegisterAdditional} or the models are never baked, while
+ * the baked instances only exist later, at
+ * {@link ModelEvent.BakingCompleted}.
+ *
+ * <p>The second half is what replaces {@code FabricBakedModelManager}, which
+ * has no NeoForge equivalent: standalone models are not reachable through the
+ * vanilla {@code ModelManager}, so the lookup is captured once at bake time and
+ * handed to {@link timmychips.modefiteitemdefinitions.property.resolver.ResolveRecursive}.
+ */
+@Mod(value = ClientInitializer.MOD_ID, dist = Dist.CLIENT)
+public class ClientInitializer {
 
     public static final String MOD_ID = "modefite";
 	public static final Logger LOGGER = LogUtils.getLogger();
-	public static Collection<ResourceLocation> modelIds;
+	public static Collection<ResourceLocation> modelIds = List.of();
 
     // Extra optional fields in Items Model root
     private static final String HAND_ANIMATION_SWAP = "hand_animation_on_swap";
@@ -53,7 +74,7 @@ public class ClientInitializer implements ClientModInitializer {
                             .ifPresent(pair -> {
                                 // Clean up path to match item ID (remove "items/" and ".json")
                                 String cleanPath = id.getPath().substring((folderName + "/").length(), id.getPath().length() - ".json".length());
-                                ResourceLocation itemId = ResourceLocation.parse(id.getNamespace(), cleanPath);
+                                ResourceLocation itemId = ResourceLocation.fromNamespaceAndPath(id.getNamespace(), cleanPath);
 
                                 ItemModelDefinition definition = pair.getFirst();
                                 ItemModelRootDefinition rootDef = new ItemModelRootDefinition(definition, handAnimationOnSwap, oversizedInGui, swapAnimationScale);
@@ -71,34 +92,43 @@ public class ClientInitializer implements ClientModInitializer {
         }
     }
 
-	@Override
-	public void onInitializeClient() {
-		// Mod's Client Entrypoint
+    public ClientInitializer(IEventBus modBus) {
+        modBus.addListener(ClientInitializer::onRegisterAdditional);
+        modBus.addListener(ClientInitializer::onBakingCompleted);
+    }
 
-		// Register methods using items for the is_using predicate
-		UseKeyTracker.receiveUseKeyPacket();
-		UseKeyTracker.clientUseKey();
-		UseKeyTracker.eventUseKeyPacket();
+    /**
+     * Parses every item definition and declares the models they reference.
+     *
+     * <p>All the per-reload resetting the Fabric plugin did happens here, for
+     * the same reason: this fires on every resource reload, so stale state from
+     * the previous pack set has to go first.
+     */
+    private static void onRegisterAdditional(ModelEvent.RegisterAdditional event) {
+        ResourceManager manager = Minecraft.getInstance().getResourceManager();
 
-		ModelLoadingPlugin.register(pluginContext -> {
+        timmychips.modefiteitemdefinitions.property.resolver.ArmorTextureRedirect.clearCache();
+        timmychips.modefiteitemdefinitions.property.resolver.VanillaShaderFactory.clearCache();
+        ItemModelTypes.Registry.clear();
+        RangePropertyRegistry.init();
+        ConditionPropertyRegistry.init();
+        SelectPropertyRegistry.init();
 
-			ResourceManager manager = Minecraft.getInstance().getResourceManager();
+        registerResources("items", manager);
+        // Where modded properties belong: modefite_items_override
+        registerResources(MOD_ID + "_items_override", manager);
 
-			timmychips.modefiteitemdefinitions.property.resolver.ArmorTextureRedirect.clearCache();
-			timmychips.modefiteitemdefinitions.property.resolver.VanillaShaderFactory.clearCache();
-			ItemModelTypes.Registry.clear();
-			RangePropertyRegistry.init();
-			ConditionPropertyRegistry.init();
-			SelectPropertyRegistry.init();
+        modelIds = ItemModelTypes.Registry.getAllModelDependencies();
+        LOGGER.info("{}: loading {} models", MOD_ID.toUpperCase(), modelIds.size());
 
-			registerResources("items", manager);
-            String overrideFolderName = MOD_ID + "_items_override"; // modefite_items_override
-            registerResources(overrideFolderName, manager); // The resource folder where you should use modded properties
+        for (ResourceLocation id : modelIds) {
+            event.register(new ModelResourceLocation(id, "standalone"));
+        }
+    }
 
-			modelIds = ItemModelTypes.Registry.getAllModelDependencies();
-
-			LOGGER.info("{}: loading models", MOD_ID.toUpperCase());
-			pluginContext.addModels(modelIds);
-		});
-	}
+    /** Captures the baked instances for the ids declared above. */
+    private static void onBakingCompleted(ModelEvent.BakingCompleted event) {
+        timmychips.modefiteitemdefinitions.property.resolver.ResolveRecursive.setModelLookup(
+                id -> event.getModels().get(new ModelResourceLocation(id, "standalone")));
+    }
 }

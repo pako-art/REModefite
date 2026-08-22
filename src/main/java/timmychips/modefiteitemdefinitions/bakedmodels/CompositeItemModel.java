@@ -1,6 +1,5 @@
 package timmychips.modefiteitemdefinitions.bakedmodels;
 
-import net.fabricmc.fabric.api.renderer.v1.render.RenderContext;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.resources.model.BakedModel;
@@ -92,7 +91,7 @@ public class CompositeItemModel implements BakedModel {
     }
 
     @Override
-    public ItemTransforms getTransformation() {
+    public ItemTransforms getTransforms() {
         List<BakedModel> children = modelParts.stream()
                 .map(part -> ResolveRecursive.resolve(part, renderMode, stack, entity)
                         .orElse(ResolveRecursive.getMissingModel()))
@@ -101,7 +100,7 @@ public class CompositeItemModel implements BakedModel {
         for (BakedModel part : children) {
             return part.getTransforms();
         }
-        return ItemTransforms.NONE;
+        return ItemTransforms.NO_TRANSFORMS;
     }
 
     // Get item overrides; doesn't matter too much though since we're replacing the item override system
@@ -115,17 +114,11 @@ public class CompositeItemModel implements BakedModel {
                 .orElse(ItemOverrides.EMPTY);
     }
 
-    @Override
-    public boolean isVanillaAdapter() {
-        return false; // False to trigger FabricBakedModel rendering
-    }
+    // Fabric's rendering API is not part of NeoForge. isVanillaAdapter(),
+    // emitItemQuads() and emitBlockQuads() came from FabricBakedModel and have
+    // no counterpart here: NeoForge renders through getQuads() plus the
+    // IBakedModelExtension hooks, both already implemented above. Dropped
+    // rather than stubbed, so nothing pretends to be wired up.
 
     // Emit item quads for each model part
-    @Override
-    public void emitItemQuads(ItemStack stack, Supplier<RandomSource> randomSupplier, RenderContext context) {
-        modelParts.stream()
-                .map(part -> ResolveRecursive.resolve(part, renderMode, stack, entity)
-                        .orElse(ResolveRecursive.getMissingModel()))
-                .forEach(baked -> baked.emitItemQuads(stack, randomSupplier, context));
-    }
 }

@@ -102,15 +102,15 @@ public abstract class HeldItemMixin {
 
                             PoseStack.Pose entry = matrices.last().copy();
                             if (renderMode == ItemDisplayContext.GUI) {
-                                MatrixUtil.scale(entry.pose(), 0.5F);
+                                entry.pose().scale(0.5F);
                             } else if (renderMode.firstPerson()) {
-                                MatrixUtil.scale(entry.pose(), 0.75F);
+                                entry.pose().scale(0.75F);
                             }
 
                             this.renderBakedItemModel(modelPart, stack, light, overlay, matrices, vertexConsumer);
                         }
                         else {
-                            this.builtinModelItemRenderer.render(stack, renderMode, matrices, vertexConsumers, light, overlay);
+                            this.builtinModelItemRenderer.renderByItem(stack, renderMode, matrices, vertexConsumers, light, overlay);
                         }
                         matrices.popPose(); // Pop matrix to prevent render errors for next element in list
                     }
@@ -127,7 +127,7 @@ public abstract class HeldItemMixin {
                     BakedModel customModel = getCustomModel(stack, null, renderMode);
                     if (customModel != null && customModel != model) {
                         ItemRenderer self = (ItemRenderer) (Object) this;
-                        self.renderItem(stack, renderMode, leftHanded, matrices, vertexConsumers, light, overlay, customModel);
+                        self.render(stack, renderMode, leftHanded, matrices, vertexConsumers, light, overlay, customModel);
                         ci.cancel();
                     }
                 }
@@ -156,7 +156,7 @@ public abstract class HeldItemMixin {
             if (model != null) {
                 ItemRenderer self = (ItemRenderer)(Object) this;
                 // manually call vanilla rendering method with overridden model
-                self.renderItem(item, renderMode, leftHanded, matrices, vertexConsumers, light, overlay, model);
+                self.render(item, renderMode, leftHanded, matrices, vertexConsumers, light, overlay, model);
                 ci.cancel(); // skip original call
             }
         } finally {
@@ -196,14 +196,14 @@ public abstract class HeldItemMixin {
 
         // If item's items model definition has an invalid model type, returns missing item model
         for (ResourceLocation id : ItemModelTypes.Registry.INVALID_MODEL_TYPES) {
-            if (BuiltInRegistries.ITEM.getId(stack.getItem()).equals(id)) { // Checks if INVALID_TYPES Set contains item id
+            if (BuiltInRegistries.ITEM.getKey(stack.getItem()).equals(id)) { // Checks if INVALID_TYPES Set contains item id
                 return missingModelManager.getMissingModel(); // Item renders as Missing Model
             }
         }
 
         if (mode == null) mode = ItemDisplayContext.GUI;
 
-        Optional<BakedModel> maybeModel = resolveModel(BuiltInRegistries.ITEM.getId(stack.getItem()), mode, stack, entity);
+        Optional<BakedModel> maybeModel = resolveModel(BuiltInRegistries.ITEM.getKey(stack.getItem()), mode, stack, entity);
         if (maybeModel != null && maybeModel.isPresent()) {
             return maybeModel.get();
         }

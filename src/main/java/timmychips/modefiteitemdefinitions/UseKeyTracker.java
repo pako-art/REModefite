@@ -1,9 +1,6 @@
 package timmychips.modefiteitemdefinitions;
 
 import com.mojang.logging.LogUtils;
-import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
-import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
-import net.fabricmc.fabric.api.event.player.UseItemCallback;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.client.KeyMapping;
@@ -11,83 +8,102 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.InteractionResultHolder;
 import net.minecraft.world.level.Level;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.neoforge.client.event.ClientTickEvent;
+import net.neoforged.neoforge.event.entity.player.PlayerInteractEvent;
+import net.neoforged.neoforge.network.PacketDistributor;
+import net.neoforged.neoforge.network.handling.IPayloadContext;
 import org.slf4j.Logger;
 import timmychips.modefiteitemdefinitions.objects.PlayerHeldItem;
 
 import java.util.HashMap;
 import java.util.UUID;
 
+/**
+ * Fabric -> NeoForge for the use-key tracking.
+ *
+ * <p>Three Fabric hooks are replaced by NeoForge events:
+ * {@code ClientTickEvents.END_CLIENT_TICK} and {@code END_WORLD_TICK} both
+ * become {@link ClientTickEvent.Post} - NeoForge has no separate client-world
+ * tick, so the per-player pass runs off the same event, guarded on the level
+ * being loaded. {@code UseItemCallback} becomes
+ * {@link PlayerInteractEvent.RightClickItem}.
+ *
+ * <p><b>Upstream defect, fixed here.</b> The Fabric version guarded the C2S
+ * send with {@code if (!world.isClient)} and then called
+ * {@code ClientPlayNetworking.send}, i.e. it only tried to send the
+ * client-to-server packet while running on the server, where that call has no
+ * client connection to send on. The condition is inverted; this port sends when
+ * {@code level.isClientSide} is true, which is the only side that can.
+ */
+@EventBusSubscriber(modid = ClientInitializer.MOD_ID, value = Dist.CLIENT)
 public class UseKeyTracker {
     private static final Logger LOGGER = LogUtils.getLogger();
     private static ItemStack itemUsed = ItemStack.EMPTY;
     private static boolean useKeyPressed = false;
     public static final HashMap<Player, PlayerHeldItem> itemMap = new HashMap<>();
 
-    // When client player/user presses the use key; occurs every client tick
-    public static void clientUseKey() {
-        ClientTickEvents.END_CLIENT_TICK.register(client -> {
-            if (client.world != null) {
-                Player user = Minecraft.getInstance().player;
-                KeyMapping useKey = Minecraft.getInstance().options.useKey;
-                useKeyPressed = useKey.isDown();
+    /**
+     * Runs every client tick. Covers what Fabric split across END_CLIENT_TICK
+     * and END_WORLD_TICK.
+     */
+    @SubscribeEvent
+    public static void onClientTick(ClientTickEvent.Post event) {
+        Minecraft client = Minecraft.getInstance();
+        Level level = client.level;
+        if (level == null) return;
 
-                if (user != null) itemUsed = user.getMainHandItem().isEmpty() ? user.getOffhandItem() : user.getMainHandItem(); // gets main or offhand ItemStack
+        Player user = client.player;
+        KeyMapping useKey = client.options.keyUse;
+        useKeyPressed = useKey.isDown();
 
-                // Adds or removes the client user and the item used to HashMap when pressing the use key or not
-                if (useKeyPressed && !itemUsed.isEmpty()) {
-                    // Initialize player with item use data
-                    ItemStack defaultStack = itemUsed.getItem().getDefaultStack();
-                    itemMap.put(user, new PlayerHeldItem(defaultStack));
-                }
+        if (user != null) {
+            itemUsed = user.getMainHandItem().isEmpty() ? user.getOffhandItem() : user.getMainHandItem();
+
+            if (useKeyPressed && !itemUsed.isEmpty()) {
+                itemMap.put(user, new PlayerHeldItem(itemUsed.getItem().getDefaultInstance()));
             }
-        });
+        }
 
-        // Occurs at every world tick so frame rate is capped to ~20ticks/sec
-        // Updates void methods
-        ClientTickEvents.END_WORLD_TICK.register(world -> {
-            for (var player:world.getPlayers()) {
-                UseKeyTracker.useTickInterval(player); // Tick timer for other (non-client) players to retain item usage
-            }
-        });
+        // Tick timer for other (non-client) players to retain item usage.
+        for (Player player : level.players()) {
+            useTickInterval(player);
+        }
     }
 
-    // Event that sends packet to server when client player/user presses right click
-    public static void eventUseKeyPacket() {
-        UseItemCallback.EVENT.register((Player user, Level world, net.minecraft.world.InteractionHand hand) -> {
-            if (!world.isClient) {
-                UUID playerUuid = user.getUUID();
+    /** Tells the server this player started using an item. Client side only. */
+    @SubscribeEvent
+    public static void onRightClickItem(PlayerInteractEvent.RightClickItem event) {
+        Player user = event.getEntity();
+        if (!user.level().isClientSide) return;
 
-                // Get the base item from user and convert to default stack to avoid component map crashes
-                Item itemUsed = user.getStackInHand(hand).getItem();
-                ItemStack defaultStack = itemUsed.getDefaultStack();
+        // Base item as a default stack, to avoid component-map crashes over the wire.
+        Item item = user.getItemInHand(event.getHand()).getItem();
+        ItemStack defaultStack = item.getDefaultInstance();
 
-                if (!defaultStack.isEmpty()) {
-                    UseKeyC2SPayload payload = new UseKeyC2SPayload(playerUuid, defaultStack, true);
-                    ClientPlayNetworking.send(payload); // Sends payload to server
-                }
-            }
-
-			return InteractionResultHolder.pass(user.getStackInHand(hand)); // Pass to return that we did the event
-		});
+        if (!defaultStack.isEmpty()) {
+            PacketDistributor.sendToServer(new UseKeyC2SPayload(user.getUUID(), defaultStack, true));
+        }
     }
 
-    // Receives packet of other player pressing the use key from the server for other clients
-    public static void receiveUseKeyPacket() {
-        ClientPlayNetworking.registerGlobalReceiver(UseKeyS2CPayload.PACKET_ID, (payload, context) -> {
-            Minecraft client = Minecraft.getInstance();
-            if (client.world != null) {
-                client.execute(() -> {
-                    Player sender = client.world.getPlayerByUuid(payload.playerUuid());
-                    if (sender != null) {
-                        if (payload.isUsing()) {
-                            itemMap.put(sender, new PlayerHeldItem(payload.itemStack().copy()));
-                        }
-                    }
-                });
-            }
-        });
+    /**
+     * Another player's use-key state, relayed by the server.
+     *
+     * <p>Registered from {@link ModefiteNetworking}. NeoForge already dispatches
+     * payload handlers on the main thread, so the {@code client.execute} hop the
+     * Fabric version needed is gone.
+     */
+    public static void handleUseKeySync(UseKeyS2CPayload payload, IPayloadContext context) {
+        Minecraft client = Minecraft.getInstance();
+        if (client.level == null) return;
+
+        Player sender = client.level.getPlayerByUUID(payload.playerUuid());
+        if (sender != null && payload.isUsing()) {
+            itemMap.put(sender, new PlayerHeldItem(payload.itemStack().copy()));
+        }
     }
 
     // Countdown tick timer
@@ -124,11 +140,11 @@ public class UseKeyTracker {
     private static boolean clientHasItemSelected(LivingEntity livingEntity, ItemStack stack) {
         if (livingEntity instanceof LocalPlayer clientPlayer) {
 //            InteractionHand hand = clientPlayer.getUsedItemHand();
-//            ItemStack currentStack = clientPlayer.getStackInHand(hand); // Only actually does it for player's main hand :(
+//            ItemStack currentStack = clientPlayer.getItemInHand(hand); // Only actually does it for player's main hand :(
 
             ItemStack currentStack = clientPlayer.getMainHandItem().isEmpty() ? clientPlayer.getOffhandItem() : clientPlayer.getMainHandItem();
 
-            return ItemStack.areEqual(currentStack,stack);
+            return ItemStack.matches(currentStack,stack);
         }
         return true;
     }
@@ -136,8 +152,8 @@ public class UseKeyTracker {
     // Item Predicate logic to set "is_using" predicate float based on some criteria
     public static float playerUseItemKey(LivingEntity livingEntity, ItemStack usableItem) {
         // Items that you can actually use (food, bow, shield, etc.)
-        if (!livingEntity.isPlayer()) return 0.0F;
-        if (livingEntity.isUsingItem() && ItemStack.areEqual(livingEntity.getUseItem(), usableItem)) return 1.0F;
+        if (!(livingEntity instanceof Player)) return 0.0F;
+        if (livingEntity.isUsingItem() && ItemStack.matches(livingEntity.getUseItem(), usableItem)) return 1.0F;
 
         // For non-usable items like pickaxes, blocks, materials, etc.
         Player player = (Player) livingEntity;

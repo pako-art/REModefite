@@ -11,16 +11,16 @@ import net.minecraft.core.UUIDUtil;
 import java.util.UUID;
 
 public record UseKeyS2CPayload(UUID playerUuid, ItemStack itemStack, boolean isUsing) implements CustomPacketPayload {
-    public static final ResourceLocation ID = ResourceLocation.fromNamespaceAndPath(ServerInitializer.MOD_ID, "use_key_sync");
-    public static final CustomPacketPayload.Id<UseKeyS2CPayload> PACKET_ID = new CustomPacketPayload.Id<>(ID);
+    public static final ResourceLocation ID = ResourceLocation.fromNamespaceAndPath(ClientInitializer.MOD_ID, "use_key_sync");
+    public static final CustomPacketPayload.Type<UseKeyS2CPayload> TYPE = new CustomPacketPayload.Type<>(ID);
 
-    public static final StreamCodec<RegistryFriendlyByteBuf, UseKeyS2CPayload> CODEC = StreamCodec.tuple(
-            UUIDUtil.PACKET_CODEC, UseKeyS2CPayload::playerUuid,
-            ItemStack.PACKET_CODEC, UseKeyS2CPayload::itemStack,
+    public static final StreamCodec<RegistryFriendlyByteBuf, UseKeyS2CPayload> CODEC = StreamCodec.composite(
+            UUIDUtil.STREAM_CODEC, UseKeyS2CPayload::playerUuid,
+            ItemStack.STREAM_CODEC, UseKeyS2CPayload::itemStack,
             ByteBufCodecs.BOOL, UseKeyS2CPayload::isUsing,
             UseKeyS2CPayload::new
     );
 
     @Override
-    public CustomPacketPayload.Id<? extends CustomPacketPayload> getId() { return PACKET_ID; }
+    public CustomPacketPayload.Type<? extends CustomPacketPayload> type() { return TYPE; }
 }
