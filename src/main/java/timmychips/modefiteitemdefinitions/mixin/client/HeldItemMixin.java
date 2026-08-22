@@ -102,9 +102,9 @@ public abstract class HeldItemMixin {
 
                             PoseStack.Pose entry = matrices.last().copy();
                             if (renderMode == ItemDisplayContext.GUI) {
-                                entry.pose().scale(0.5F);
+                                MatrixUtil.mulComponentWise(entry.pose(), 0.5F);
                             } else if (renderMode.firstPerson()) {
-                                entry.pose().scale(0.75F);
+                                MatrixUtil.mulComponentWise(entry.pose(), 0.75F);
                             }
 
                             this.renderModelLists(modelPart, stack, light, overlay, matrices, vertexConsumer);
