@@ -21,6 +21,11 @@ import timmychips.modefiteitemdefinitions.property.type.codec.ItemModelDefinitio
 import timmychips.modefiteitemdefinitions.property.type.codec.ItemModelRootDefinition;
 import timmychips.modefiteitemdefinitions.property.type.ItemModelTypes;
 
+import net.minecraft.client.renderer.block.model.BlockModel;
+import net.minecraft.server.packs.resources.Resource;
+import java.io.BufferedReader;
+import java.util.ArrayList;
+import java.util.Optional;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.Collection;
@@ -118,11 +123,62 @@ public class ClientInitializer {
         // Where modded properties belong: modefite_items_override
         registerResources(MOD_ID + "_items_override", manager);
 
-        modelIds = ItemModelTypes.Registry.getAllModelDependencies();
-        LOGGER.info("{}: loading {} models", MOD_ID.toUpperCase(), modelIds.size());
+        Collection<ResourceLocation> wanted = ItemModelTypes.Registry.getAllModelDependencies();
+        List<ResourceLocation> usable = new ArrayList<>(wanted.size());
+        int rejected = 0;
 
-        for (ResourceLocation id : modelIds) {
-            event.register(new ModelResourceLocation(id, "standalone"));
+        for (ResourceLocation id : wanted) {
+            if (canDeserialize(manager, id)) {
+                usable.add(id);
+                event.register(new ModelResourceLocation(id, "standalone"));
+            } else {
+                rejected++;
+            }
+        }
+
+        modelIds = usable;
+        if (rejected > 0) {
+            LOGGER.info("{}: loading {} models, {} skipped as unusable", MOD_ID.toUpperCase(), usable.size(), rejected);
+        } else {
+            LOGGER.info("{}: loading {} models", MOD_ID.toUpperCase(), usable.size());
+        }
+    }
+
+    /**
+     * Whether Minecraft will be able to deserialise this model.
+     *
+     * <p>Registering an id whose model cannot be read is what produced the
+     * magenta cube: ModelBakery substitutes a missing model under that id, the
+     * lookup then succeeds, and the substitute is drawn at block scale in hand.
+     * Ids that fail here are never registered at all, so the lookup returns
+     * null and the resolver falls back to the vanilla item model.
+     *
+     * <p>This runs Minecraft's own deserialiser rather than merely checking
+     * that the file is valid JSON, because the failures that matter are
+     * Minecraft's - "Missing axis" on a Blockbench multi-axis rotation, for
+     * one. It says nothing about textures on purpose: a model whose texture
+     * the atlas cannot resolve still bakes and still has geometry, and
+     * rejecting those is exactly the mistake an earlier attempt made.
+     *
+     * <p>Costs one read and parse per referenced model at load, and nothing at
+     * render time.
+     */
+    private static boolean canDeserialize(ResourceManager manager, ResourceLocation id) {
+        ResourceLocation path = ResourceLocation.fromNamespaceAndPath(
+                id.getNamespace(), "models/" + id.getPath() + ".json");
+
+        Optional<Resource> resource = manager.getResource(path);
+        if (resource.isEmpty()) {
+            LOGGER.warn("Skipping model {}: no such file. Item definitions referencing it fall back to the vanilla model.", id);
+            return false;
+        }
+
+        try (BufferedReader reader = resource.get().openAsReader()) {
+            BlockModel.fromStream(reader);
+            return true;
+        } catch (Exception e) {
+            LOGGER.warn("Skipping model {}: {}. Item definitions referencing it fall back to the vanilla model.", id, e.getMessage());
+            return false;
         }
     }
 
