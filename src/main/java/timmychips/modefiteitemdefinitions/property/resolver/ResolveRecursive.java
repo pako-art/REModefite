@@ -2,6 +2,7 @@ package timmychips.modefiteitemdefinitions.property.resolver;
 
 import com.mojang.logging.LogUtils;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.renderer.texture.MissingTextureAtlasSprite;
 import net.minecraft.client.resources.model.BakedModel;
 import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.entity.LivingEntity;
@@ -63,8 +64,27 @@ public class ResolveRecursive {
         bakedMissingModel = model;
     }
 
+    /**
+     * Whether a lookup produced the missing model rather than the real thing.
+     *
+     * <p>Identity is not reliable here. ModelBakery substitutes a missing model
+     * for a registered id it could not load, but the instance handed back is not
+     * necessarily the one {@code ModelManager.getMissingModel()} returns, nor the
+     * one stored under {@code MISSING_MODEL_VARIANT} - three separate instances
+     * were observed. So this asks what the model is made of instead of which
+     * object it is: every missing model, whichever instance, carries the
+     * missingno texture as its particle icon.
+     */
     private static boolean isMissing(BakedModel model) {
-        return model == null || model == bakedMissingModel || model == getMissingModel();
+        if (model == null || model == bakedMissingModel || model == getMissingModel()) {
+            return true;
+        }
+        try {
+            return MissingTextureAtlasSprite.getLocation().equals(model.getParticleIcon().contents().name());
+        } catch (Exception e) {
+            // A model that cannot even report a particle icon is not usable either.
+            return true;
+        }
     }
 
     /** Fetch missing model safely */
