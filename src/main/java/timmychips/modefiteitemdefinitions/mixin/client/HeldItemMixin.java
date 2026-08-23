@@ -51,18 +51,6 @@ public abstract class HeldItemMixin {
         // every caller - including the hand renderer. HandDisplayContext says
         // which context is actually being drawn when a hand is on the path.
         ItemDisplayContext context = timmychips.modefiteitemdefinitions.objects.HandDisplayContext.get();
-
-        // Punchy renders the hand through its own pipeline: it asks getModel for
-        // a model and then applies its own transforms, on the assumption that
-        // what comes back is the vanilla one. Handing it a pack model with its
-        // own display transforms - lantern_hand carries scale 0.31 - produces a
-        // lantern the size of the screen. Punchy owns hand rendering, so leave
-        // hand contexts alone while it is installed. GUI, ground and fixed are
-        // untouched and still resolve normally.
-        if (context != null && timmychips.modefiteitemdefinitions.compat.PunchyCompat.deferUseProperties()) {
-            return;
-        }
-
         BakedModel model = getCustomModel(stack, entity, context != null ? context : ItemDisplayContext.GUI);
         if (model != null) {
             cir.setReturnValue(model);
