@@ -13,6 +13,7 @@ import timmychips.modefiteitemdefinitions.bakedmodels.CompositeItemModel;
 import timmychips.modefiteitemdefinitions.bakedmodels.EmptyItemModel;
 import timmychips.modefiteitemdefinitions.bakedmodels.SpecialItemModel;
 import timmychips.modefiteitemdefinitions.property.type.SpecialModelRegistry;
+import timmychips.modefiteitemdefinitions.property.tint.ActiveTints;
 import timmychips.modefiteitemdefinitions.property.resolver.selectcase.ComponentCase;
 import timmychips.modefiteitemdefinitions.property.type.codec.*;
 
@@ -126,6 +127,9 @@ public class ResolveRecursive {
                     }
                     return Optional.empty();
                 }
+                // Parked for ItemColorsTintMixin, which is handed only a stack and a
+                // tint index and cannot otherwise know which definition produced this.
+                ActiveTints.set(model.tints());
                 return Optional.of(bakedModel);
             }
             case SpecialModelDefinition special -> {

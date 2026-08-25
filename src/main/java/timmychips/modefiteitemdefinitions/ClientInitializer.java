@@ -118,6 +118,7 @@ public class ClientInitializer {
         RangePropertyRegistry.init();
         ConditionPropertyRegistry.init();
         SelectPropertyRegistry.init();
+        timmychips.modefiteitemdefinitions.property.tint.TintSource.init();
 
         registerResources("items", manager);
         // Where modded properties belong: modefite_items_override

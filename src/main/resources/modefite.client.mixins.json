@@ -10,6 +10,7 @@
     "HandDisplayContextMixin",
     "HeldItemMixin",
     "HeldItemSwapMixin",
+    "ItemColorsTintMixin",
     "KeyBindingAccessor",
     "PackFormatFallbackMixin",
     "UnlockedModelRotationDeserializerMixin"
