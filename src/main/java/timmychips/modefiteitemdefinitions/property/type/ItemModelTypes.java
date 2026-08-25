@@ -24,6 +24,7 @@ public class ItemModelTypes {
         ID_MAPPER.put(CompositeModelDefinition.TYPE,           CompositeModelDefinition.CODEC);
         ID_MAPPER.put(EmptyModelDefinition.TYPE,               EmptyModelDefinition.CODEC);
         ID_MAPPER.put(SpecialModelDefinition.TYPE,             SpecialModelDefinition.CODEC);
+        ID_MAPPER.put(BundleSelectedItemDefinition.TYPE,       BundleSelectedItemDefinition.CODEC);
     }
 
     /**

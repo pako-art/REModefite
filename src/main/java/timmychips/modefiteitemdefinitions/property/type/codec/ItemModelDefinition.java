@@ -5,7 +5,7 @@ import net.minecraft.resources.ResourceLocation;
 
 // Entry point to item model definition types
 public sealed interface ItemModelDefinition
-        permits CompositeModelDefinition, ConditionDefinition, EmptyModelDefinition, SpecialModelDefinition, ModelDefinition, RangeDispatchDefinition.Definition, SelectDefinition.Definition {
+        permits BundleSelectedItemDefinition, CompositeModelDefinition, ConditionDefinition, EmptyModelDefinition, SpecialModelDefinition, ModelDefinition, RangeDispatchDefinition.Definition, SelectDefinition.Definition {
 
     /**
      * Every subtype must return its own codec.

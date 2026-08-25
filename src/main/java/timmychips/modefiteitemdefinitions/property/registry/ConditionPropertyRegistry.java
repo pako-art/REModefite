@@ -19,6 +19,7 @@ public class ConditionPropertyRegistry {
 
     public static void init() {
         register(ResourceLocation.parse("minecraft:broken"), new BrokenBool());
+        register(ResourceLocation.parse("minecraft:bundle/has_selected_item"), new BundleHasSelectedItemBool());
         register(ResourceLocation.parse("minecraft:carried"), new CarriedBool());
         register(ResourceLocation.parse("minecraft:component"), new ComponentBool());
         register(ResourceLocation.parse("minecraft:custom_model_data"), new CustomModelDataBool());

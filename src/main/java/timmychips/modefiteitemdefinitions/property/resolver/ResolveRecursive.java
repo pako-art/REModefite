@@ -138,6 +138,11 @@ public class ResolveRecursive {
                 // copper_golem_statue, for one. The base model is the honest answer.
                 return Optional.of(proxy == null ? base : new SpecialItemModel(base, proxy));
             }
+            case BundleSelectedItemDefinition bundleSelected -> {
+                // No bundle selection exists on this version, so there is nothing
+                // to draw. See BundleHasSelectedItemBool.
+                return EMPTY_MODEL;
+            }
             case EmptyModelDefinition emptyModelDefinition -> {
                 return EMPTY_MODEL;  // stateless, so one instance serves every call
             }
