@@ -1,6 +1,8 @@
 package timmychips.modefiteitemdefinitions.property.type;
 
 import com.google.gson.JsonObject;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import org.jetbrains.annotations.Nullable;
@@ -65,9 +67,72 @@ public final class SpecialModelRegistry {
         register("conduit",       fields -> new ItemStack(Items.CONDUIT));
         register("decorated_pot", fields -> new ItemStack(Items.DECORATED_POT));
 
+        // Sub-types carrying a field. Each names a vanilla item whose own
+        // components already tell the renderer what to draw, so the field is
+        // only ever used to pick that item.
+        register("banner",      fields -> byId(str(fields, "color"), "_banner"));
+        register("bed",         fields -> byId(str(fields, "texture"), "_bed"));
+        register("shulker_box", fields -> byId(shulkerColour(str(fields, "texture")), "_shulker_box"));
+        register("chest",       fields -> chestFor(str(fields, "texture")));
+        register("head",        fields -> byId(str(fields, "kind"), "_head", "_skull"));
+        register("player_head", fields -> new ItemStack(Items.PLAYER_HEAD));
+
         // 1.21.9 content. The copper golem does not exist in 1.21.1, so there is
         // no entity model to borrow and no honest way to draw this. Returning
         // null falls back to the definition's base model rather than pretending.
         register("copper_golem_statue", fields -> null);
+    }
+
+    /** A field's value with any namespace stripped; null when absent. */
+    @Nullable
+    private static String str(JsonObject fields, String key) {
+        return fields.has(key) && fields.get(key).isJsonPrimitive()
+                ? fields.get(key).getAsString().replace("minecraft:", "")
+                : null;
+    }
+
+    /**
+     * Resolves {@code <value><suffix>} against the item registry, trying each
+     * suffix in turn.
+     *
+     * <p>Heads need two: vanilla names them {@code zombie_head} and
+     * {@code creeper_head} but {@code skeleton_skull} and {@code wither_skeleton_skull}.
+     */
+    @Nullable
+    private static ItemStack byId(@Nullable String value, String... suffixes) {
+        if (value == null) return null;
+        for (String suffix : suffixes) {
+            var item = BuiltInRegistries.ITEM.getOptional(
+                    ResourceLocation.withDefaultNamespace(value + suffix)).orElse(null);
+            if (item != null && item != Items.AIR) return new ItemStack(item);
+        }
+        ClientInitializer.LOGGER.warn("No item for special model value '{}'. Falling back to the base model.", value);
+        return null;
+    }
+
+    /** {@code shulker_yellow} names the texture, not the item; the item is {@code yellow_shulker_box}. */
+    @Nullable
+    private static String shulkerColour(@Nullable String texture) {
+        if (texture == null) return null;
+        return texture.startsWith("shulker_") ? texture.substring("shulker_".length()) : texture;
+    }
+
+    /**
+     * Chest textures do not map onto item ids the way the others do:
+     * {@code normal}, {@code trapped} and {@code ender} are variants of one
+     * block, while 1.21.9's {@code copper} chests have no 1.21.1 counterpart.
+     */
+    @Nullable
+    private static ItemStack chestFor(@Nullable String texture) {
+        if (texture == null) return new ItemStack(Items.CHEST);
+        return switch (texture) {
+            case "trapped" -> new ItemStack(Items.TRAPPED_CHEST);
+            case "ender"   -> new ItemStack(Items.ENDER_CHEST);
+            case "normal"  -> new ItemStack(Items.CHEST);
+            default -> {
+                ClientInitializer.LOGGER.warn("Chest texture '{}' has no 1.21.1 equivalent; drawing a normal chest.", texture);
+                yield new ItemStack(Items.CHEST);
+            }
+        };
     }
 }
