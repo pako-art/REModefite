@@ -84,6 +84,21 @@ public abstract class HeldItemMixin {
             cancellable = true)
     private void modefite$renderCompositeOrItemEntityModel(ItemStack stack, ItemDisplayContext renderMode, boolean leftHanded, PoseStack matrices, MultiBufferSource vertexConsumers, int light, int overlay, BakedModel model, CallbackInfo ci) {
         if (!stack.isEmpty()) {
+            /// A model carrying 26.x's "transformation" field. Applied to the pose
+            /// rather than baked into the quads, so the wrapped model stays shared
+            /// and several definitions can transform the same one differently.
+            /// Re-enters render with the unwrapped model, which then takes
+            /// whichever branch below it belongs to.
+            if (model instanceof timmychips.modefiteitemdefinitions.bakedmodels.TransformedItemModel transformed) {
+                matrices.pushPose();
+                matrices.last().pose().mul(transformed.transformation().getMatrix());
+                ItemRenderer self = (ItemRenderer) (Object) this;
+                self.render(stack, renderMode, leftHanded, matrices, vertexConsumers, light, overlay, transformed.wrapped());
+                matrices.popPose();
+                ci.cancel();
+                return;
+            }
+
             /// Special model types, drawn by the vanilla block-entity renderer.
             /// It dispatches on the item it is given, so the proxy stack has to
             /// be substituted here - handed the real stack it would draw
