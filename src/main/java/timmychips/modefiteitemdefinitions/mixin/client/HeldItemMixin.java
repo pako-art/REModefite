@@ -84,6 +84,20 @@ public abstract class HeldItemMixin {
             cancellable = true)
     private void modefite$renderCompositeOrItemEntityModel(ItemStack stack, ItemDisplayContext renderMode, boolean leftHanded, PoseStack matrices, MultiBufferSource vertexConsumers, int light, int overlay, BakedModel model, CallbackInfo ci) {
         if (!stack.isEmpty()) {
+            /// Special model types, drawn by the vanilla block-entity renderer.
+            /// It dispatches on the item it is given, so the proxy stack has to
+            /// be substituted here - handed the real stack it would draw
+            /// whatever is actually held, not what the definition asked for.
+            if (model instanceof timmychips.modefiteitemdefinitions.bakedmodels.SpecialItemModel special) {
+                matrices.pushPose();
+                model.getTransforms().getTransform(renderMode).apply(leftHanded, matrices);
+                matrices.translate(-0.5F, -0.5F, -0.5F);
+                this.blockEntityRenderer.renderByItem(special.proxyStack(), renderMode, matrices, vertexConsumers, light, overlay);
+                matrices.popPose();
+                ci.cancel();
+                return;
+            }
+
             ///  Composite model types
             if (model instanceof CompositeItemModel compositeModel) {
                 // Retrieve list of baked models from CompositeItemModel object

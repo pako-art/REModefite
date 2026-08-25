@@ -11,6 +11,8 @@ import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import timmychips.modefiteitemdefinitions.bakedmodels.CompositeItemModel;
 import timmychips.modefiteitemdefinitions.bakedmodels.EmptyItemModel;
+import timmychips.modefiteitemdefinitions.bakedmodels.SpecialItemModel;
+import timmychips.modefiteitemdefinitions.property.type.SpecialModelRegistry;
 import timmychips.modefiteitemdefinitions.property.resolver.selectcase.ComponentCase;
 import timmychips.modefiteitemdefinitions.property.type.codec.*;
 
@@ -125,6 +127,16 @@ public class ResolveRecursive {
                     return Optional.empty();
                 }
                 return Optional.of(bakedModel);
+            }
+            case SpecialModelDefinition special -> {
+                BakedModel base = modelLookup.apply(special.base());
+                if (isMissing(base)) {
+                    return Optional.empty();
+                }
+                ItemStack proxy = SpecialModelRegistry.proxyFor(special.subType(), special.fields());
+                // No proxy means this sub-type has no representation here -
+                // copper_golem_statue, for one. The base model is the honest answer.
+                return Optional.of(proxy == null ? base : new SpecialItemModel(base, proxy));
             }
             case EmptyModelDefinition emptyModelDefinition -> {
                 return EMPTY_MODEL;  // stateless, so one instance serves every call

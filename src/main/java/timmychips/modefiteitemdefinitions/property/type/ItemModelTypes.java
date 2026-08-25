@@ -23,6 +23,7 @@ public class ItemModelTypes {
         ID_MAPPER.put(RangeDispatchDefinition.Definition.TYPE, RangeDispatchDefinition.Definition.codec(CODEC));
         ID_MAPPER.put(CompositeModelDefinition.TYPE,           CompositeModelDefinition.CODEC);
         ID_MAPPER.put(EmptyModelDefinition.TYPE,               EmptyModelDefinition.CODEC);
+        ID_MAPPER.put(SpecialModelDefinition.TYPE,             SpecialModelDefinition.CODEC);
     }
 
     /**
@@ -109,6 +110,11 @@ public class ItemModelTypes {
                     collectModelsFromDefinition(entry.model(), out);
                 }
                 collectModelsFromDefinition(range.fallback(), out);
+
+            } else if (def instanceof SpecialModelDefinition special) {
+                // Only the base is a real model id; the sub-type is drawn by the
+                // vanilla special renderer and has nothing to register.
+                out.add(special.base());
 
             } else if (def instanceof CompositeModelDefinition composite) {
                 for (ItemModelDefinition defPart : composite.models()) {
